@@ -1,0 +1,6 @@
+{
+	"cSpell.words": ["defmt", "gpio"],
+
+	"rust-analyzer.cargo.target": "thumbv7m-none-eabi"
+	// "rust-analyzer.checkOnSave.allTargets": false
+}
