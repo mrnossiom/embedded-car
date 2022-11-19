@@ -28,5 +28,13 @@
 -   A **battery charger** module for `18650` cells - [LetMeKnow](https://letmeknow.fr/fr/batteries/2541-module-d-alimentation-charge-micro-usb-18650.html)
 -   A `18650` **cell holder** - [LetMeKnow](https://letmeknow.fr/fr/coupleurs/1581-support-pour-batterie-18650-avec-fils-652733546272.html)
 
--   Unused **Servo Motor** for now (SG90) - [DataSheetsPDF](https://datasheetspdf.com/pdf/791970/TowerPro/SG90/1)
+-   Unused **Servo Motor** for now (`SG90`) - [DataSheetsPDF](https://datasheetspdf.com/pdf/791970/TowerPro/SG90/1)
 -   **Breadboard** and MM/MF **jumper wires**
+
+## Ressources
+
+### Building a mental scheme
+
+-   Various knowledge about electricity: The Engineering Mindset - [YouTube](https://www.youtube.com/c/Theengineeringmindset/channels)
+-   Wiring a motor driver module: [YouTube](https://www.youtube.com/watch?v=bNOlimnWZJE) and [How To Mechatronics](https://howtomechatronics.com/tutorials/arduino/arduino-dc-motor-control-tutorial-l298n-pwm-h-bridge/) tutorials.
+-   `PWM` and Timers - [YouTube](https://www.youtube.com/watch?v=AjN58ceQaF4) and [Nordic Semiconductor](https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.nrf52832.ps.v1.1%2Fpwm.html)
