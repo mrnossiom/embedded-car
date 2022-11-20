@@ -13,11 +13,7 @@ use embassy_stm32::{
 	Peripheral,
 };
 
-/// Struct for L298N. Two enable inputs are provided to enable or disable the device
-/// independently of the input signals. The emitters of the lower transistors of each
-/// bridge are connected together and the corresponding external terminal can be used
-/// for the connection of an external sensing resistor. An additional supply input is
-/// provided so that the logic works at a lower voltage.
+/// Manages a new L298N a Dual H-Bridge Motor Controller module
 pub struct L298N<'a, In1, In2, In3, In4, TimerPin>
 where
 	In1: Pin,
@@ -27,9 +23,14 @@ where
 
 	TimerPin: CaptureCompare16bitInstance,
 {
+	/// The left motor controller
 	left: SingleMotor<'a, In1, In2>,
+	/// The right motor controller
 	right: SingleMotor<'a, In3, In4>,
 
+	/// The `PWM` to control the speed of the motors
+	/// `Ch1` is used for the left motor
+	/// `Ch2` is used for the right motor
 	pwm: SimplePwm<'a, TimerPin>,
 }
 
@@ -89,16 +90,14 @@ where
 		self
 	}
 
-	/// Brakes the motor - Fast Motor Stop
-	/// with Ven = H then C = D Fast Motor Stop
+	/// Brakes the motor (Fast Motor Stop)
 	pub fn brake(&mut self) -> &mut Self {
 		self.left.brake();
 		self.right.brake();
 		self
 	}
 
-	/// Stops the motor - Free Running Motor Stop
-	/// Ven = L then with C = X ; D = X
+	/// Stops the motor and sets `PWM` duty to 0 for both motors. (Free Running Motor Stop)
 	pub fn stop(&mut self) -> &mut Self {
 		self.pwm.set_duty(Channel::Ch1, 0);
 		self.pwm.set_duty(Channel::Ch2, 0);
@@ -144,12 +143,15 @@ where
 	}
 }
 
+/// Manages a single motor
 pub struct SingleMotor<'a, InA, InB>
 where
 	InA: Pin,
 	InB: Pin,
 {
+	/// The first control pin
 	pub(crate) in_a: Output<'a, InA>,
+	/// The second control pin
 	pub(crate) in_b: Output<'a, InB>,
 }
 impl<'a, InA, InB> SingleMotor<'a, InA, InB>
@@ -157,6 +159,7 @@ where
 	InA: Pin,
 	InB: Pin,
 {
+	/// Creates a new `SingleMotor` from the two control pins.
 	fn from_pins(in_a: InA, in_b: InB) -> Self {
 		SingleMotor {
 			in_a: Output::new(in_a, Level::Low, Speed::Low),

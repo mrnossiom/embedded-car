@@ -23,6 +23,8 @@
 -   **Blue Pill** Board (`STM32F103C8T6`) - [STM32-BASE](https://stm32-base.org/boards/STM32F103C8T6-Blue-Pill) - [Pinout Diagram](https://github.com/siyouluo/STM32-Blue-Pill/blob/master/PDF/The-Generic-STM32F103-Pinout-Diagram.pdf)
 -   **ST-Link** V2 (`STM32F101C8T6`) - [STM32-base](https://stm32-base.org/boards/Debugger-STM32F101C8T6-STLINKV2)
 -   Motor Driver Module (`HW-095` containing a `L298N`) - [Components101](https://components101.com/modules/l293n-motor-driver-module) and [AllDataSheets](https://www.alldatasheet.fr/datasheet-pdf/pdf/22440/STMICROELECTRONICS/L298N.html)
+-   Bluetooth module (`HC-05`) - [ElectroSchematics](https://www.electroschematics.com/wp-content/uploads/2013/07/HCSR04-datasheet-version-2.pdf)
+-   Ultrasonic Sensor (`HC-SR04`) - [SparkFun](https://cdn.sparkfun.com/datasheets/Sensors/Proximity/HCSR04.pdf)
 
 -   Large **cell** of `3600mA` (`LGDB-M36-1865`) - [SecondLifeStorage](https://secondlifestorage.com/index.php?threads/lg-lgdbm361865-cell-specifications.8329/)
 -   A **battery charger** module for `18650` cells - [LetMeKnow](https://letmeknow.fr/fr/batteries/2541-module-d-alimentation-charge-micro-usb-18650.html)
@@ -38,3 +40,4 @@
 -   Various knowledge about electricity: The Engineering Mindset - [YouTube](https://www.youtube.com/c/Theengineeringmindset/channels)
 -   Wiring a motor driver module: [YouTube](https://www.youtube.com/watch?v=bNOlimnWZJE) and [How To Mechatronics](https://howtomechatronics.com/tutorials/arduino/arduino-dc-motor-control-tutorial-l298n-pwm-h-bridge/) tutorials.
 -   `PWM` and Timers - [YouTube](https://www.youtube.com/watch?v=AjN58ceQaF4) and [Nordic Semiconductor](https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.nrf52832.ps.v1.1%2Fpwm.html)
+-   `UART` protocol - [AnalogDialogue](https://www.analog.com/en/analog-dialogue/articles/uart-a-hardware-communication-protocol.html)
