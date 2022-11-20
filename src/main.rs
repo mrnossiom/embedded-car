@@ -26,13 +26,13 @@
 
 use {defmt_rtt as _, panic_probe as _};
 
-use defmt::*;
+use defmt::{debug, info, unwrap};
 use embassy_executor::Spawner;
 use embassy_stm32::{
 	dma::NoDma,
 	gpio::{Level, Output, Speed},
 	interrupt,
-	peripherals::{PA4, PA5, PA6, PA7, PC13, TIM1},
+	peripherals::{PA4, PA5, PA6, PA7, PB4, PB5, PC13, TIM1},
 };
 use embassy_time::{Duration, Timer};
 
@@ -83,9 +83,32 @@ async fn run_forest_run(mut motor_driver: L298N<'static, PA7, PA6, PA5, PA4, TIM
 	info!("Forest no longer wants to run!");
 }
 
+#[embassy_executor::task]
+/// Play with the `HC-SR04` ultrasonic sensor.
+async fn yield_distance(mut sensor: HcSr04<'static, PB4, PB5>) {
+	loop {
+		let distance = sensor.ping_distance().await;
+		info!("Distance: {:?} mm", distance);
+
+		Timer::after(Duration::from_millis(1000)).await;
+	}
+}
+
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
 	let p = embassy_stm32::init(Default::default());
+
+	// The fourth timer is used by `embassy-time` for timers.
+	// It is enabled by the `time-driver-tim4` feature on the `embassy-stm32` crate.
+	// I think, it is possible to use this timer with precaution.
+	//
+	// I chose to drop it to avoid any conflict.
+	//
+	// Link to relevant part of the build script from `embassy-stm32` crate:
+	// https://github.com/embassy-rs/embassy/blob/2528f451387e6c7b27c3140cd87d47521d1971a2/embassy-stm32/build.rs#L716-L765
+	#[allow(clippy::drop_non_drop)]
+	drop(p.TIM4);
+
 	info!("Hello World!");
 
 	let board_led = Output::new(p.PC13, Level::Low, Speed::Low);
@@ -93,7 +116,8 @@ async fn main(spawner: Spawner) {
 
 	let _servo = Sg90::from_pin(p.PA15, p.TIM2);
 
-	let _ultrasonic = HcSr04::from_pins(p.PA0, p.PA1);
+	let ultrasonic = HcSr04::from_pins(p.PB4, p.PB5, p.EXTI5);
+	unwrap!(spawner.spawn(yield_distance(ultrasonic)));
 
 	let bluetooth_irq = interrupt::take!(USART1);
 	let _bluetooth = Hc06::from_pins(p.USART1, p.PB6, p.PB7, bluetooth_irq, NoDma, NoDma);

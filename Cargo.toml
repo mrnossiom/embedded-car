@@ -16,17 +16,17 @@ panic-probe = { version = "0.3", features = ["print-defmt"] }
 [dependencies.embassy-executor]
 git = "https://github.com/embassy-rs/embassy.git"
 branch = "master"
-features = ["defmt", "integrated-timers", "nightly"]
+features = ["nightly", "defmt", "integrated-timers"]
 
 [dependencies.embassy-stm32]
 git = "https://github.com/embassy-rs/embassy.git"
 branch = "master"
-features = ["defmt", "time-driver-tim2", "nightly", "stm32f103c8"]
+features = ["stm32f103c8", "nightly", "defmt", "time-driver-tim4", "exti"]
 
 [dependencies.embassy-time]
 git = "https://github.com/embassy-rs/embassy.git"
 branch = "master"
-features = ["defmt", "nightly"]
+features = ["nightly", "defmt"]
 
 [profile.release]
 codegen-units = 1
