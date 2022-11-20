@@ -1,5 +1,14 @@
 {
-	"cSpell.words": ["defmt", "eabi", "gpio", "LGDB", "thumbv", "vsix"],
+	"cSpell.words": [
+		"defmt",
+		"eabi",
+		"exti",
+		"Fritzing",
+		"gpio",
+		"LGDB",
+		"thumbv",
+		"vsix"
+	],
 
 	"rust-analyzer.cargo.target": "thumbv7m-none-eabi",
 	"rust-analyzer.checkOnSave.allTargets": false

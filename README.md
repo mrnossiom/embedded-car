@@ -16,6 +16,11 @@
     Then, install the extension with `code --install-extension probe-rs-debugger-x.x.x.vsix`
 -   You also need to install the server component: `cargo install --git https://github.com/probe-rs/probe-rs --force --branch master probe-rs-debugger`
 
+### Circuit (Fritzing)
+
+The circuit design is made with the open source application `Fritzing` and stored in the file `CircuitDesign.fzz`.
+You can download a packed executable on the website by donating $8 or build it from source with the [installation instructions](https://github.com/fritzing/fritzing-app/wiki/1.-Building-Fritzing) on the repository.
+
 ## Material
 
 > Many of the documents linked here are available in the `hardware-specs` folder of this repository.
