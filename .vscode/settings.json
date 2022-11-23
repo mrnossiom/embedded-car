@@ -5,6 +5,7 @@
 		"exti",
 		"Fritzing",
 		"gpio",
+		"heapless",
 		"LGDB",
 		"thumbv",
 		"vsix"

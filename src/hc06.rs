@@ -1,10 +1,12 @@
 //! `HC-06` bluetooth module driver
 
 use core::panic;
+use defmt::{dbg, debug, trace};
 use embassy_stm32::{
 	usart::{self, BasicInstance, Config, Parity, Uart},
 	Peripheral,
 };
+use heapless::String;
 
 /// Represents a `HC-06` bluetooth module.
 pub struct Hc06<'a, UartInstance, TxDma, RxDma>
@@ -18,6 +20,9 @@ where
 impl<'a, UartInstance, TxDma, RxDma> Hc06<'a, UartInstance, TxDma, RxDma>
 where
 	UartInstance: BasicInstance,
+
+	TxDma: usart::TxDma<UartInstance>,
+	RxDma: usart::RxDma<UartInstance>,
 {
 	/// Creates a new `HC-06` handle from the `UART` peripheral and `rx`, `tx` pins.
 	/// You can also provide `DMA`s peripherals to enable `Direct Memory Access` transfers.
@@ -75,6 +80,9 @@ where
 	pub fn change_name(&mut self, name: &str) -> Result<(), usart::Error> {
 		self.uart.blocking_write(b"AT+NAME")?;
 		self.uart.blocking_write(name.as_bytes())?;
+		self.uart.blocking_write(b"\r\n")?;
+
+		// TODO: check module response
 
 		Ok(())
 	}
@@ -84,6 +92,9 @@ where
 	pub fn change_baud_rate(&mut self, baud_rate: &str) -> Result<(), usart::Error> {
 		self.uart.blocking_write(b"AT+BAUD")?;
 		self.uart.blocking_write(baud_rate.as_bytes())?;
+		self.uart.blocking_write(b"\r\n")?;
+
+		// TODO: check module response
 
 		Ok(())
 	}
@@ -99,37 +110,33 @@ where
 			Parity::ParityEven => self.uart.blocking_write(b"PE")?,
 		}
 
-		match parity_check {
-			Parity::ParityNone => {
-				let mut buffer = [0u8; 7];
-				self.uart.blocking_read(&mut buffer)?;
+		self.uart.blocking_write(b"\r\n")?;
 
-				if buffer == *b"OK NONE" {
-					Ok(())
-				} else {
-					panic!("Failed to disable parity check");
-				}
-			}
-			Parity::ParityOdd => {
-				let mut buffer = [0u8; 6];
-				self.uart.blocking_read(&mut buffer)?;
+		// TODO: check module response
 
-				if buffer == *b"OK ODD" {
-					Ok(())
-				} else {
-					panic!("Failed to enable odd parity check");
-				}
-			}
-			Parity::ParityEven => {
-				let mut buffer = [0u8; 7];
-				self.uart.blocking_read(&mut buffer)?;
+		Ok(())
+	}
 
-				if buffer == *b"OK EVEN" {
-					Ok(())
-				} else {
-					panic!("Failed to enable even parity check");
-				}
-			}
+	///
+	pub async fn ping(&mut self) -> Result<(), usart::Error> {
+		self.uart.write(b"AT\r\n").await?;
+
+		trace!("Ping sent");
+
+		let mut buffer = [0u8; 100];
+
+		loop {
+			self.uart.read_until_idle(&mut buffer).await?;
+			dbg!(buffer);
+
+			let string = buffer
+				.into_iter()
+				.map(|c| c as char)
+				.collect::<String<100>>();
+
+			debug!("{}", string);
 		}
+
+		// Ok(())
 	}
 }

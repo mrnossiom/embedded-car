@@ -8,7 +8,6 @@
 	clippy::todo,
 	clippy::too_many_lines,
 	clippy::unicode_not_nfc,
-	clippy::unused_async,
 	clippy::use_self,
 	clippy::dbg_macro,
 	clippy::doc_markdown,
@@ -29,10 +28,9 @@ use {defmt_rtt as _, panic_probe as _};
 use defmt::{debug, info, unwrap};
 use embassy_executor::Spawner;
 use embassy_stm32::{
-	dma::NoDma,
 	gpio::{Level, Output, Speed},
 	interrupt,
-	peripherals::{PA4, PA5, PA6, PA7, PB4, PB5, PC13, TIM1},
+	peripherals::{DMA1_CH4, DMA1_CH5, PA4, PA5, PA6, PA7, PB4, PB5, PC13, TIM1, USART1},
 };
 use embassy_time::{Duration, Timer};
 
@@ -88,10 +86,16 @@ async fn run_forest_run(mut motor_driver: L298N<'static, PA7, PA6, PA5, PA4, TIM
 async fn yield_distance(mut sensor: HcSr04<'static, PB4, PB5>) {
 	loop {
 		let distance = sensor.ping_distance().await;
-		info!("Distance: {:?} mm", distance);
+		info!("Distance: {:?} cm", distance);
 
 		Timer::after(Duration::from_millis(1000)).await;
 	}
+}
+
+#[embassy_executor::task]
+/// Play with the `HC-06` bluetooth receiver.
+async fn i_im_afraid_i_cant_do_that_dave(mut bt_module: Hc06<'static, USART1, DMA1_CH4, DMA1_CH5>) {
+	unwrap!(bt_module.ping().await);
 }
 
 #[embassy_executor::main]
@@ -116,12 +120,20 @@ async fn main(spawner: Spawner) {
 
 	let _servo = Sg90::from_pin(p.PA15, p.TIM2);
 
-	let ultrasonic = HcSr04::from_pins(p.PB4, p.PB5, p.EXTI5);
-	unwrap!(spawner.spawn(yield_distance(ultrasonic)));
+	let _ultrasonic = HcSr04::from_pins(p.PB4, p.PB5, p.EXTI5);
+	// unwrap!(spawner.spawn(yield_distance(ultrasonic)));
 
 	let bluetooth_irq = interrupt::take!(USART1);
-	let _bluetooth = Hc06::from_pins(p.USART1, p.PB6, p.PB7, bluetooth_irq, NoDma, NoDma);
+	let bluetooth = Hc06::from_pins(
+		p.USART1,
+		p.PB6,
+		p.PB7,
+		bluetooth_irq,
+		p.DMA1_CH4,
+		p.DMA1_CH5,
+	);
+	unwrap!(spawner.spawn(i_im_afraid_i_cant_do_that_dave(bluetooth)));
 
-	let motor_driver = L298N::from_pins(p.PA7, p.PA6, p.PA8, p.PA5, p.PA4, p.PA9, p.TIM1);
-	unwrap!(spawner.spawn(run_forest_run(motor_driver)));
+	let _motor_driver = L298N::from_pins(p.PA7, p.PA6, p.PA8, p.PA5, p.PA4, p.PA9, p.TIM1);
+	// unwrap!(spawner.spawn(run_forest_run(motor_driver)));
 }
