@@ -120,8 +120,8 @@ async fn main(spawner: Spawner) {
 
 	let _servo = Sg90::from_pin(p.PA15, p.TIM2);
 
-	let _ultrasonic = HcSr04::from_pins(p.PB4, p.PB5, p.EXTI5);
-	// unwrap!(spawner.spawn(yield_distance(ultrasonic)));
+	let ultrasonic = HcSr04::from_pins(p.PB4, p.PB5, p.EXTI5);
+	unwrap!(spawner.spawn(yield_distance(ultrasonic)));
 
 	let bluetooth_irq = interrupt::take!(USART1);
 	let bluetooth = Hc06::from_pins(

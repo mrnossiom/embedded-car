@@ -8,18 +8,17 @@
 			"type": "probe-rs-debug",
 			"request": "launch",
 			"name": "probe-rs",
-			"cwd": "${workspaceFolder}",
+			"cwd": "${workspaceFolder}/car-core",
 			"connectUnderReset": true,
 			"chip": "STM32F103C8",
 			"flashingConfig": {
 				"flashingEnabled": true,
-				"resetAfterFlashing": true,
-				"haltAfterReset": true
+				"resetAfterFlashing": true
 			},
 			"coreConfigs": [
 				{
 					"coreIndex": 0,
-					"programBinary": "./target/thumbv7m-none-eabi/release/${workspaceFolderBasename}"
+					"programBinary": "${workspaceFolder}/car-core/target/thumbv7m-none-eabi/release/car-core"
 				}
 			]
 		}

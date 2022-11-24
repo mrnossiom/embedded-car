@@ -1,8 +1,8 @@
 # Build
-target/
+**/target/
 
 # Configuration
 .DS_Store
-.vscode/*
-!.vscode/settings.json
-!.vscode/launch.json
+**/.vscode/*
+!**/.vscode/settings.json
+!**/.vscode/launch.json

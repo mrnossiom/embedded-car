@@ -1,16 +1,16 @@
 {
 	"cSpell.words": [
+		"bleuuid",
+		"btleplug",
 		"defmt",
 		"eabi",
 		"exti",
 		"Fritzing",
 		"gpio",
+		"hcsr",
 		"heapless",
 		"LGDB",
 		"thumbv",
 		"vsix"
-	],
-
-	"rust-analyzer.cargo.target": "thumbv7m-none-eabi",
-	"rust-analyzer.checkOnSave.allTargets": false
+	]
 }

@@ -1,0 +1,13 @@
+[package]
+name = "car-controller"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+btleplug = "0.10.3"
+car-core = { version = "0.1.0", path = "../car-core" }
+egui = "0.19.0"
+tokio = { version = "1.22.0", features = ["full"] }
+uuid = { version = "1.2.2", features = ["v4"] }

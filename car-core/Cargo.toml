@@ -1,8 +1,18 @@
+cargo-features = ["per-package-target"]
+
 [package]
-name = "embedded-car"
+name = "car-core"
 authors = ["Milo Moisson"]
 version = "0.1.0"
 edition = "2021"
+forced-target = "thumbv7m-none-eabi"
+
+
+[[bin]]
+name = "car-core"
+test = false
+bench = false
+
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
