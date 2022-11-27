@@ -113,15 +113,8 @@ async fn main(spawner: Spawner) {
 	#[allow(clippy::drop_non_drop)]
 	drop(p.TIM4);
 
-	info!("Hello World!");
-
 	let board_led = Output::new(p.PC13, Level::Low, Speed::Low);
 	unwrap!(spawner.spawn(alive_blinker(board_led, Duration::from_millis(500))));
-
-	let _servo = Sg90::from_pin(p.PA15, p.TIM2);
-
-	let ultrasonic = HcSr04::from_pins(p.PB4, p.PB5, p.EXTI5);
-	unwrap!(spawner.spawn(yield_distance(ultrasonic)));
 
 	let bluetooth_irq = interrupt::take!(USART1);
 	let bluetooth = Hc06::from_pins(
@@ -134,6 +127,10 @@ async fn main(spawner: Spawner) {
 	);
 	unwrap!(spawner.spawn(i_im_afraid_i_cant_do_that_dave(bluetooth)));
 
-	let _motor_driver = L298N::from_pins(p.PA7, p.PA6, p.PA8, p.PA5, p.PA4, p.PA9, p.TIM1);
+	// let ultrasonic = HcSr04::from_pins(p.PB4, p.PB5, p.EXTI5);
+	// unwrap!(spawner.spawn(yield_distance(ultrasonic)));
+
+	// let servo = Sg90::from_pin(p.PA15, p.TIM2);
+	// let motor_driver = L298N::from_pins(p.PA7, p.PA6, p.PA8, p.PA5, p.PA4, p.PA9, p.TIM1);
 	// unwrap!(spawner.spawn(run_forest_run(motor_driver)));
 }
