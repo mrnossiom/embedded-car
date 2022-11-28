@@ -1,3 +1,5 @@
+//! Contains `Bluetooth` communication logic with the `HC-06` module
+
 use btleplug::{
 	api::{
 		Central, CentralEvent, CharPropFlags, Characteristic, Manager as _, Peripheral as _,
@@ -9,12 +11,13 @@ use futures::{Stream, StreamExt};
 use std::{fmt, io, pin::Pin};
 use tokio::time::{sleep, Duration};
 
+/// Implements the `Bluetooth` communication logic
 pub struct CarBluetooth {
-	peripheral: Peripheral,
-
-	rx_characteristic: Characteristic,
-	tx_characteristic: Characteristic,
-
+	/// The distant `Bluetooth` device
+	pub peripheral: Peripheral,
+	/// The `Bluetooth` characteristic to send and receive data
+	pub characteristic: Characteristic,
+	/// Events received through the `Bluetooth` characteristic
 	events: Pin<Box<dyn Stream<Item = ValueNotification> + Send>>,
 }
 
@@ -22,41 +25,36 @@ impl fmt::Debug for CarBluetooth {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
 		f.debug_struct("CarBluetooth")
 			.field("peripheral", &self.peripheral)
-			.field("rx_characteristic", &self.rx_characteristic)
-			.field("tx_characteristic", &self.tx_characteristic)
+			.field("characteristic", &self.characteristic)
 			.finish()
 	}
 }
 
 impl CarBluetooth {
+	/// Creates a new [`CarBluetooth`] from the given [`Peripheral`]
 	pub async fn new(peripheral: Peripheral) -> Result<Self, CarBluetoothError> {
 		peripheral.discover_services().await?;
 		let mut characteristics = peripheral.characteristics().into_iter();
 
-		let rx_characteristic = characteristics
-			.find(|c| c.properties.contains(CharPropFlags::READ))
-			.ok_or(CarBluetoothError::Io(io::Error::new(
-				io::ErrorKind::Unsupported,
-				"Bluetooth device does not have a characteristic to read from",
-			)))?;
-
-		let tx_characteristic = characteristics
+		let characteristic = characteristics
 			.find(|c| {
-				c.properties
-					.contains(CharPropFlags::WRITE_WITHOUT_RESPONSE & CharPropFlags::NOTIFY)
+				c.properties.contains(
+					CharPropFlags::READ
+						| CharPropFlags::WRITE_WITHOUT_RESPONSE
+						| CharPropFlags::NOTIFY,
+				)
 			})
 			.ok_or(CarBluetoothError::Io(io::Error::new(
 				io::ErrorKind::Unsupported,
 				"Bluetooth device does not have a characteristic to write and notify",
 			)))?;
 
-		peripheral.subscribe(&tx_characteristic).await?;
+		peripheral.subscribe(&characteristic).await?;
 		let events = peripheral.notifications().await?;
 
 		Ok(Self {
 			peripheral,
-			rx_characteristic,
-			tx_characteristic,
+			characteristic,
 			events,
 		})
 	}
@@ -102,14 +100,23 @@ impl CarBluetooth {
 		Self::new(peripheral).await
 	}
 
-	pub async fn send(&mut self, bytes: &[u8]) -> Result<(), CarBluetoothError> {
+	/// Write bytes to the `Bluetooth` device
+	pub async fn write(&mut self, bytes: &[u8]) -> Result<(), CarBluetoothError> {
 		self.peripheral
-			.write(&self.tx_characteristic, bytes, WriteType::WithoutResponse)
+			.write(&self.characteristic, bytes, WriteType::WithoutResponse)
 			.await?;
 
 		Ok(())
 	}
 
+	/// Read bytes from the `Bluetooth` device
+	pub async fn read(&mut self) -> Result<Vec<u8>, CarBluetoothError> {
+		let bytes = self.peripheral.read(&self.characteristic).await?;
+
+		Ok(bytes)
+	}
+
+	/// Receive a message from the bluetooth device
 	pub async fn receive(&mut self, bytes: &mut [u8]) -> Result<usize, CarBluetoothError> {
 		let stream = self.events.next().await.ok_or_else(|| {
 			std::io::Error::new(
@@ -128,11 +135,14 @@ impl CarBluetooth {
 	}
 }
 
+/// Errors that can occur when using [`CarBluetooth`]
 #[derive(Debug, thiserror::Error)]
 pub enum CarBluetoothError {
+	/// An error occurred while communicating with the `bluetooth` device
 	#[error(transparent)]
 	Io(#[from] std::io::Error),
 
+	/// An error occurred while using the underlying library or communicating with the bluetooth device
 	#[error(transparent)]
 	BtlePlug(#[from] btleplug::Error),
 }
