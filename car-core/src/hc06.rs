@@ -1,7 +1,6 @@
 //! `HC-06` bluetooth module driver
 
-use core::panic;
-use defmt::{dbg, debug, trace};
+use defmt::trace;
 use embassy_stm32::{
 	usart::{self, BasicInstance, Config, Parity, Uart},
 	Peripheral,
@@ -58,7 +57,7 @@ where
 	}
 
 	/// Change the pin password of the bluetooth module.
-	pub fn change_pin(&mut self, pin: &str) -> Result<(), usart::Error> {
+	pub fn change_pin(&mut self, pin: &str) -> Result<(), Hc06Error> {
 		assert!(pin.len() == 4, "The pin must be 4 characters long");
 
 		self.uart.blocking_write(b"AT+PIN")?;
@@ -72,15 +71,14 @@ where
 		if buffer == *b"OKsetpin" {
 			Ok(())
 		} else {
-			panic!("Failed to change pin");
+			Err(Hc06Error::NotOkResponse)
 		}
 	}
 
 	/// Change the name of the bluetooth module.
-	pub fn change_name(&mut self, name: &str) -> Result<(), usart::Error> {
+	pub fn change_name(&mut self, name: &str) -> Result<(), Hc06Error> {
 		self.uart.blocking_write(b"AT+NAME")?;
 		self.uart.blocking_write(name.as_bytes())?;
-		self.uart.blocking_write(b"\r\n")?;
 
 		// TODO: check module response
 
@@ -89,10 +87,9 @@ where
 
 	// TODO: change the baudrate of the UART peripheral
 	/// Changes the baudrate of the bluetooth data exchange.
-	pub fn change_baud_rate(&mut self, baud_rate: &str) -> Result<(), usart::Error> {
+	pub fn change_baud_rate(&mut self, baud_rate: &str) -> Result<(), Hc06Error> {
 		self.uart.blocking_write(b"AT+BAUD")?;
 		self.uart.blocking_write(baud_rate.as_bytes())?;
-		self.uart.blocking_write(b"\r\n")?;
 
 		// TODO: check module response
 
@@ -101,7 +98,7 @@ where
 
 	// TODO: change the parity check of the UART peripheral
 	/// Changes the parity check of the bluetooth module.
-	pub fn change_parity_check(&mut self, parity_check: Parity) -> Result<(), usart::Error> {
+	pub fn change_parity_check(&mut self, parity_check: Parity) -> Result<(), Hc06Error> {
 		self.uart.blocking_write(b"AT+")?;
 
 		match parity_check {
@@ -110,33 +107,42 @@ where
 			Parity::ParityEven => self.uart.blocking_write(b"PE")?,
 		}
 
-		self.uart.blocking_write(b"\r\n")?;
-
 		// TODO: check module response
 
 		Ok(())
 	}
 
 	///
-	pub async fn ping(&mut self) -> Result<(), usart::Error> {
-		self.uart.write(b"AT\r\n").await?;
+	pub async fn ping(&mut self) -> Result<(), Hc06Error> {
+		self.uart.write(b"AT").await?;
 
-		trace!("Ping sent");
+		let mut buffer = [0_u8; 2];
 
-		let mut buffer = [0u8; 100];
+		self.uart.read(&mut buffer).await?;
+		let string = buffer.iter().map(|b| *b as char).collect::<String<2>>();
 
-		loop {
-			self.uart.read_until_idle(&mut buffer).await?;
-			dbg!(buffer);
+		trace!("AT ping response : {}", string);
 
-			let string = buffer
-				.into_iter()
-				.map(|c| c as char)
-				.collect::<String<100>>();
-
-			debug!("{}", string);
+		if string == "OK" {
+			Ok(())
+		} else {
+			Err(Hc06Error::NotOkResponse)
 		}
+	}
+}
 
-		// Ok(())
+/// Represents a `HC-06` bluetooth module error.
+#[derive(defmt::Format)]
+pub enum Hc06Error {
+	/// The module did not respond with `OK` or the right answer for AT commands.
+	NotOkResponse,
+
+	/// There was a problem with the UART communication itself.
+	USArt(usart::Error),
+}
+
+impl From<usart::Error> for Hc06Error {
+	fn from(error: usart::Error) -> Self {
+		Self::USArt(error)
 	}
 }

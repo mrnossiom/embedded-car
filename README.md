@@ -35,7 +35,7 @@ You can download a packed executable on the website by donating $8 or build it f
 -   A `18650` **cell holder** - [LetMeKnow](https://letmeknow.fr/fr/coupleurs/1581-support-pour-batterie-18650-avec-fils-652733546272.html)
 
 -   **Breadboard** and MM/MF **jumper wires**
--   A large stock of resistors of every value
+-   A large stock of resistors of every value - [HackSpark](https://hackspark.fr/en/electronics/1470-1-4w-metal-resistor-kit-30-values-600pieces.html)
 
 ## Ressources
 
