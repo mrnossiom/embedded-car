@@ -115,10 +115,10 @@ where
 	/// Changes the motor speed by a percentage
 	pub fn set_duty(&mut self, duty_left: Option<u16>, duty_right: Option<u16>) -> &mut Self {
 		if let Some(duty) = duty_left {
-			self.pwm.set_duty(Channel::Ch1, duty)
+			self.pwm.set_duty(Channel::Ch1, duty);
 		}
 		if let Some(duty) = duty_right {
-			self.pwm.set_duty(Channel::Ch2, duty)
+			self.pwm.set_duty(Channel::Ch2, duty);
 		}
 		self
 	}
@@ -130,13 +130,21 @@ where
 		duty_right: Option<u8>,
 	) -> &mut Self {
 		// Asserts the number is between 1 and 100
-		assert!(duty_left.map(|duty| duty <= 100).unwrap_or(true));
-		assert!(duty_right.map(|duty| duty <= 100).unwrap_or(true));
+		assert!(duty_left.map_or(true, |duty| duty <= 100));
+		assert!(duty_right.map_or(true, |duty| duty <= 100));
 
 		// `checked_div` is used to allow using 0 as a percentage
 		self.set_duty(
-			duty_left.map(|duty| self.get_max_duty().checked_div(duty as u16).unwrap_or(0)),
-			duty_right.map(|duty| self.get_max_duty().checked_div(duty as u16).unwrap_or(0)),
+			duty_left.map(|duty| {
+				self.get_max_duty()
+					.checked_div(u16::from(duty))
+					.unwrap_or(0)
+			}),
+			duty_right.map(|duty| {
+				self.get_max_duty()
+					.checked_div(u16::from(duty))
+					.unwrap_or(0)
+			}),
 		);
 
 		self

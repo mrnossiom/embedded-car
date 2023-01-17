@@ -43,11 +43,11 @@ where
 
 	/// Returns the distance in centimeters (`cm`).
 	pub async fn ping_distance(&mut self) -> u64 {
-		let ping_duration = self.ping().await;
-
 		/// Constant to convert the duration of the echo to a distance in centimeters (`cm`).
 		/// (`343.21m/s` / `1000` (speed of light in cm/us)) / `2` (round trip)
 		const SOUND_US_TO_MM: f64 = (343.21 / 10_000.0) / 2.0;
+
+		let ping_duration = self.ping().await;
 
 		(ping_duration as f64 * SOUND_US_TO_MM) as u64
 	}

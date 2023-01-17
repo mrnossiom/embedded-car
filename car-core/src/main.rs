@@ -4,23 +4,11 @@
 #![no_main]
 #![feature(type_alias_impl_trait)]
 #![warn(
-	clippy::unwrap_used,
-	clippy::todo,
-	clippy::too_many_lines,
-	clippy::unicode_not_nfc,
-	clippy::use_self,
-	clippy::dbg_macro,
-	clippy::doc_markdown,
-	clippy::else_if_without_else,
-	clippy::implicit_clone,
-	clippy::match_bool,
-	clippy::missing_panics_doc,
-	clippy::redundant_closure_for_method_calls,
-	clippy::redundant_else,
-	clippy::must_use_candidate,
-	clippy::return_self_not_must_use,
 	clippy::missing_docs_in_private_items,
-	rustdoc::broken_intra_doc_links
+	clippy::unwrap_used,
+	clippy::nursery,
+	clippy::pedantic,
+	clippy::cargo
 )]
 
 use {defmt_rtt as _, panic_probe as _};
@@ -31,18 +19,13 @@ use embassy_stm32::{
 	gpio::{Level, Output, Speed},
 	interrupt,
 	peripherals::{DMA1_CH4, DMA1_CH5, PA4, PA5, PA6, PA7, PB4, PB5, PC13, TIM1, USART1},
+	Config,
 };
 use embassy_time::{Duration, Timer};
 
-mod hc06;
-mod hcsr04;
-mod l298n;
-mod sg90;
+mod components;
 
-use hc06::Hc06;
-use hcsr04::HcSr04;
-use l298n::L298N;
-use sg90::Sg90;
+use components::{Hc06, HcSr04, Sg90, L298N};
 
 #[embassy_executor::task]
 /// Tells if the program is running on the microcontroller.
@@ -75,7 +58,7 @@ async fn run_forest_run(mut motor_driver: L298N<'static, PA7, PA6, PA5, PA4, TIM
 		motor_driver.brake();
 		Timer::after(interval).await;
 
-		debug!("finished cycle")
+		debug!("finished cycle");
 	}
 
 	info!("Forest no longer wants to run!");
@@ -100,18 +83,17 @@ async fn i_im_afraid_i_cant_do_that_dave(mut bt_module: Hc06<'static, USART1, DM
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
-	let p = embassy_stm32::init(Default::default());
+	let p = embassy_stm32::init(Config::default());
 
 	// The fourth timer is used by `embassy-time` for timers.
 	// It is enabled by the `time-driver-tim4` feature on the `embassy-stm32` crate.
 	// I think, it is possible to use this timer with precaution.
 	//
-	// I chose to drop it to avoid any conflict.
+	// I chose to drop ownership to avoid any conflict.
 	//
 	// Link to relevant part of the build script from `embassy-stm32` crate:
 	// https://github.com/embassy-rs/embassy/blob/2528f451387e6c7b27c3140cd87d47521d1971a2/embassy-stm32/build.rs#L716-L765
-	#[allow(clippy::drop_non_drop)]
-	drop(p.TIM4);
+	let _ = p.TIM4;
 
 	let board_led = Output::new(p.PC13, Level::Low, Speed::Low);
 	unwrap!(spawner.spawn(alive_blinker(board_led, Duration::from_millis(500))));
