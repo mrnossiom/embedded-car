@@ -1,0 +1,13 @@
+[package]
+name = "car-transport"
+version = "0.1.0"
+description = "Implementation of the car communication protocol"
+repository = "https://github.com/MrNossion/embedded-car"
+authors = ["Milo Moisson"]
+keywords = ["bluetooth", "protocol"]
+categories = ["embedded"]
+readme = "../README.md"
+license = "MIT"
+edition = "2021"
+
+[dependencies]
