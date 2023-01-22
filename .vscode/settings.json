@@ -6,6 +6,7 @@
 		"eabi",
 		"exti",
 		"Fritzing",
+		"gilrs",
 		"gpio",
 		"hcsr",
 		"heapless",

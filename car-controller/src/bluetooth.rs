@@ -12,7 +12,7 @@ use std::{fmt, io, pin::Pin};
 use tokio::time::{sleep, Duration};
 
 /// Implements the `Bluetooth` communication logic
-pub struct CarBluetooth {
+pub struct Bluetooth {
 	/// The distant `Bluetooth` device
 	pub peripheral: Peripheral,
 	/// The `Bluetooth` characteristic to send and receive data
@@ -21,7 +21,7 @@ pub struct CarBluetooth {
 	events: Pin<Box<dyn Stream<Item = ValueNotification> + Send>>,
 }
 
-impl fmt::Debug for CarBluetooth {
+impl fmt::Debug for Bluetooth {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
 		f.debug_struct("CarBluetooth")
 			.field("peripheral", &self.peripheral)
@@ -30,8 +30,11 @@ impl fmt::Debug for CarBluetooth {
 	}
 }
 
-impl CarBluetooth {
+impl Bluetooth {
 	/// Creates a new [`CarBluetooth`] from the given [`Peripheral`]
+	///
+	/// # Errors
+	/// In case we don't find a device or if the peripheral does not have a characteristic to write and notify
 	pub async fn new(peripheral: Peripheral) -> Result<Self, CarBluetoothError> {
 		peripheral.discover_services().await?;
 		let mut characteristics = peripheral.characteristics().into_iter();
@@ -60,6 +63,10 @@ impl CarBluetooth {
 	}
 
 	/// Find a bluetooth peripheral by it's name and connect to it. Default timeout is 2s.
+	///
+	/// # Errors
+	/// In case we cannot build a bluetooth manager
+	/// In case the peripheral is not found or the connection fails
 	pub async fn connect_by_name(
 		name: &str,
 		timeout: Option<Duration>,
@@ -68,7 +75,10 @@ impl CarBluetooth {
 
 		// We use the first Bluetooth adapter
 		let adapters = manager.adapters().await?;
-		let central = adapters.into_iter().next().unwrap();
+		let central = adapters
+			.into_iter()
+			.next()
+			.ok_or(CarBluetoothError::BluetoothNotSupported)?;
 
 		central.start_scan(ScanFilter::default()).await?;
 
@@ -81,8 +91,9 @@ impl CarBluetooth {
 				event = events.next() => {
 					if let Some(CentralEvent::DeviceDiscovered(id)) = event {
 						let peripheral = central.peripheral(&id).await?;
+						let Some(Some(peripheral_name)) = peripheral.properties().await?.map(|p| p.local_name) else { continue; };
 
-						if peripheral.properties().await?.unwrap().local_name == Some(name.to_string()) {
+						if peripheral_name == name {
 							central.stop_scan().await?;
 
 							break peripheral;
@@ -101,6 +112,9 @@ impl CarBluetooth {
 	}
 
 	/// Write bytes to the `Bluetooth` device
+	///
+	/// # Errors
+	/// In case the write operation fails
 	pub async fn write(&mut self, bytes: &[u8]) -> Result<(), CarBluetoothError> {
 		self.peripheral
 			.write(&self.characteristic, bytes, WriteType::WithoutResponse)
@@ -110,6 +124,9 @@ impl CarBluetooth {
 	}
 
 	/// Read bytes from the `Bluetooth` device
+	///
+	/// # Errors
+	/// In case the read operation fails
 	pub async fn read(&mut self) -> Result<Vec<u8>, CarBluetoothError> {
 		let bytes = self.peripheral.read(&self.characteristic).await?;
 
@@ -117,6 +134,9 @@ impl CarBluetooth {
 	}
 
 	/// Receive a message from the bluetooth device
+	///
+	/// # Errors
+	/// In case the read operation fails
 	pub async fn receive(&mut self, bytes: &mut [u8]) -> Result<usize, CarBluetoothError> {
 		let stream = self.events.next().await.ok_or_else(|| {
 			std::io::Error::new(
@@ -138,6 +158,10 @@ impl CarBluetooth {
 /// Errors that can occur when using [`CarBluetooth`]
 #[derive(Debug, thiserror::Error)]
 pub enum CarBluetoothError {
+	/// Bluetooth is not supported on this device
+	#[error("Bluetooth is not supported on this device")]
+	BluetoothNotSupported,
+
 	/// An error occurred while communicating with the `bluetooth` device
 	#[error(transparent)]
 	Io(#[from] std::io::Error),
