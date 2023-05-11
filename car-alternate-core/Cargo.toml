@@ -1,0 +1,35 @@
+cargo-features = ["per-package-target"]
+
+[package]
+name = "car-core"
+version = "0.1.0"
+description = "Implementation of the car logic and communication protocol"
+repository = "https://github.com/MrNossion/embedded-car"
+authors = ["Milo Moisson"]
+keywords = ["embedded", "car", "stm32f103c8", "bluetooth", "blue-pill"]
+categories = ["embedded"]
+readme = "../README.md"
+forced-target = "thumbv7m-none-eabi"
+license = "MIT"
+edition = "2021"
+
+[[bin]]
+name = "car-core"
+test = false
+bench = false
+
+[dependencies]
+
+embedded-hal = "0.2.7"
+nb = "1.0.0"
+cortex-m = "0.7.7"
+cortex-m-rt = "0.7.2"
+# Panic behaviour, see https://crates.io/keywords/panic-impl for alternatives
+panic-halt = "0.2.0"
+stm32f1xx-hal = { version = "0.10.0", features = ["stm32f105", "rt", "medium"] }
+
+[profile.release]
+codegen-units = 1
+# Symbols are nice and they don't increase the size on Flash
+debug = true
+lto = true
