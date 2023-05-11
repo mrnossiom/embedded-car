@@ -1,3 +1,5 @@
+//! Contains multiple abstractions for the components used with the car.
+
 mod hc06;
 mod hcsr04;
 mod l298n;

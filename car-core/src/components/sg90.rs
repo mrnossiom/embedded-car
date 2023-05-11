@@ -54,7 +54,11 @@ where
 		assert!(duty <= 100);
 
 		// `checked_div` is used to allow using 0 as a percentage
-		self.set_duty(self.get_max_duty().checked_div(u16::from(duty)).unwrap_or(0));
+		self.set_duty(
+			self.get_max_duty()
+				.checked_div(u16::from(duty))
+				.unwrap_or(0),
+		);
 
 		self
 	}

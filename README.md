@@ -26,7 +26,8 @@ You can download a packed executable on the website by donating $8 or build it f
 -   **Blue Pill** Board (`STM32F103C8T6`) - [STM32-BASE](https://stm32-base.org/boards/STM32F103C8T6-Blue-Pill) - [Pinout Diagram](https://github.com/siyouluo/STM32-Blue-Pill/blob/master/PDF/The-Generic-STM32F103-Pinout-Diagram.pdf)
 -   **ST-Link** V2 (`STM32F101C8T6`) - [STM32-base](https://stm32-base.org/boards/Debugger-STM32F101C8T6-STLINKV2)
 -   Motor Driver Module (`HW-095` containing a `L298N`) - [Components101](https://components101.com/modules/l293n-motor-driver-module) and [AllDataSheets](https://www.alldatasheet.fr/datasheet-pdf/pdf/22440/STMICROELECTRONICS/L298N.html)
--   **Bluetooth** module (`HC-05`) - [ElectroSchematics](https://www.electroschematics.com/wp-content/uploads/2013/07/HCSR04-datasheet-version-2.pdf)
+-   **_Classic_ Bluetooth** module (`HC-05`) - [ElectroSchematics](https://www.electroschematics.com/wp-content/uploads/2013/07/HCSR04-datasheet-version-2.pdf)
+    The `Classic` bit is important since I spent a lot of time using a BLE only library. We could upgrade to a `BLE` module later on like the `HM-10`.
 -   **Ultrasonic Sensor** (`HC-SR04`) - [SparkFun](https://cdn.sparkfun.com/datasheets/Sensors/Proximity/HCSR04.pdf)
 -   **Servo Motor** (`SG90`) - [DataSheetsPDF](https://datasheetspdf.com/pdf/791970/TowerPro/SG90/1)
 

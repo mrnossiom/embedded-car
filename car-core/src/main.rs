@@ -13,12 +13,13 @@
 
 use {defmt_rtt as _, panic_probe as _};
 
-use defmt::{debug, info, unwrap};
+use core::sync::atomic::{AtomicBool, Ordering};
+use defmt::unwrap;
 use embassy_executor::Spawner;
 use embassy_stm32::{
 	gpio::{Level, Output, Speed},
 	interrupt,
-	peripherals::{DMA1_CH4, DMA1_CH5, PA4, PA5, PA6, PA7, PB4, PB5, PC13, TIM1, USART1},
+	peripherals::PC13,
 	Config,
 };
 use embassy_time::{Duration, Timer};
@@ -27,58 +28,21 @@ mod components;
 
 use components::{Hc06, HcSr04, Sg90, L298N};
 
+/// Indicate if the program is connected to a computer.
+pub static IS_CONNECTED_TO_CONTROLLER: AtomicBool = AtomicBool::new(false);
+
 #[embassy_executor::task]
 /// Tells if the program is running on the microcontroller.
-async fn alive_blinker(mut led: Output<'static, PC13>, interval: Duration) {
+async fn alive_blinker(mut led: Output<'static, PC13>) {
 	loop {
 		led.toggle();
-		Timer::after(interval).await;
+		Timer::after(if IS_CONNECTED_TO_CONTROLLER.load(Ordering::Relaxed) {
+			Duration::from_millis(500)
+		} else {
+			Duration::from_millis(125)
+		})
+		.await;
 	}
-}
-
-#[embassy_executor::task]
-/// Tests the car.
-async fn run_forest_run(mut motor_driver: L298N<'static, PA7, PA6, PA5, PA4, TIM1>) {
-	let interval = Duration::from_millis(1000);
-
-	info!("Forest is running!");
-
-	for index in 1..=10 {
-		motor_driver.set_duty_percentage(Some(index * 10), Some(index * 10));
-
-		motor_driver.forward();
-		Timer::after(interval).await;
-
-		motor_driver.brake();
-		Timer::after(interval).await;
-
-		motor_driver.reverse();
-		Timer::after(interval).await;
-
-		motor_driver.brake();
-		Timer::after(interval).await;
-
-		debug!("finished cycle");
-	}
-
-	info!("Forest no longer wants to run!");
-}
-
-#[embassy_executor::task]
-/// Play with the `HC-SR04` ultrasonic sensor.
-async fn yield_distance(mut sensor: HcSr04<'static, PB4, PB5>) {
-	loop {
-		let distance = sensor.ping_distance().await;
-		info!("Distance: {:?} cm", distance);
-
-		Timer::after(Duration::from_millis(1000)).await;
-	}
-}
-
-#[embassy_executor::task]
-/// Play with the `HC-06` bluetooth receiver.
-async fn i_im_afraid_i_cant_do_that_dave(mut bt_module: Hc06<'static, USART1, DMA1_CH4, DMA1_CH5>) {
-	unwrap!(bt_module.ping().await);
 }
 
 #[embassy_executor::main]
@@ -96,10 +60,10 @@ async fn main(spawner: Spawner) {
 	let _ = p.TIM4;
 
 	let board_led = Output::new(p.PC13, Level::Low, Speed::Low);
-	unwrap!(spawner.spawn(alive_blinker(board_led, Duration::from_millis(500))));
+	unwrap!(spawner.spawn(alive_blinker(board_led)));
 
 	let bluetooth_irq = interrupt::take!(USART1);
-	let bluetooth = Hc06::from_pins(
+	let mut bluetooth = Hc06::from_pins(
 		p.USART1,
 		p.PB6,
 		p.PB7,
@@ -107,12 +71,11 @@ async fn main(spawner: Spawner) {
 		p.DMA1_CH4,
 		p.DMA1_CH5,
 	);
-	unwrap!(spawner.spawn(i_im_afraid_i_cant_do_that_dave(bluetooth)));
 
-	// let ultrasonic = HcSr04::from_pins(p.PB4, p.PB5, p.EXTI5);
-	// unwrap!(spawner.spawn(yield_distance(ultrasonic)));
+	let _ultrasonic = HcSr04::from_pins(p.PB4, p.PB5, p.EXTI5);
+	let _servo = Sg90::from_pin(p.PA15, p.TIM2);
 
-	// let servo = Sg90::from_pin(p.PA15, p.TIM2);
-	// let motor_driver = L298N::from_pins(p.PA7, p.PA6, p.PA8, p.PA5, p.PA4, p.PA9, p.TIM1);
-	// unwrap!(spawner.spawn(run_forest_run(motor_driver)));
+	let _motor_driver = L298N::from_pins(p.PA7, p.PA6, p.PA8, p.PA5, p.PA4, p.PA9, p.TIM1);
+
+	unwrap!(bluetooth.ping().await);
 }

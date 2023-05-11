@@ -1,8 +1,9 @@
 //! `HC-06` bluetooth module driver
 
+use car_transport::{Answer, Message, Transport};
 use defmt::trace;
 use embassy_stm32::{
-	usart::{self, BasicInstance, Config, Parity, Uart},
+	usart::{self, BasicInstance, Config, Parity, Uart, UartTx},
 	Peripheral,
 };
 use heapless::String;
@@ -51,83 +52,25 @@ where
 		let mut config = Config::default();
 		config.baudrate = 9600;
 
-		let uart = Uart::new(peripheral, rx, tx, irq, tx_dma, rx_dma, config);
+		let mut uart = Uart::new(peripheral, rx, tx, irq, tx_dma, rx_dma, config);
 
 		Self { uart }
 	}
 
-	/// Change the pin password of the bluetooth module.
-	pub fn change_pin(&mut self, pin: &str) -> Result<(), Hc06Error> {
-		assert!(pin.len() == 4, "The pin must be 4 characters long");
-
-		self.uart.blocking_write(b"AT+PIN")?;
-		self.uart.blocking_write(pin.as_bytes())?;
-
-		self.uart.blocking_flush()?;
-
-		let mut buffer = [0u8; 8];
-		self.uart.blocking_read(&mut buffer)?;
-
-		if buffer == *b"OKsetpin" {
-			Ok(())
-		} else {
-			Err(Hc06Error::NotOkResponse)
-		}
-	}
-
-	/// Change the name of the bluetooth module.
-	pub fn change_name(&mut self, name: &str) -> Result<(), Hc06Error> {
-		self.uart.blocking_write(b"AT+NAME")?;
-		self.uart.blocking_write(name.as_bytes())?;
-
-		// TODO: check module response
-
-		Ok(())
-	}
-
-	// TODO: change the baudrate of the UART peripheral
-	/// Changes the baudrate of the bluetooth data exchange.
-	pub fn change_baud_rate(&mut self, baud_rate: &str) -> Result<(), Hc06Error> {
-		self.uart.blocking_write(b"AT+BAUD")?;
-		self.uart.blocking_write(baud_rate.as_bytes())?;
-
-		// TODO: check module response
-
-		Ok(())
-	}
-
-	// TODO: change the parity check of the UART peripheral
-	/// Changes the parity check of the bluetooth module.
-	pub fn change_parity_check(&mut self, parity_check: Parity) -> Result<(), Hc06Error> {
-		self.uart.blocking_write(b"AT+")?;
-
-		match parity_check {
-			Parity::ParityNone => self.uart.blocking_write(b"PN")?,
-			Parity::ParityOdd => self.uart.blocking_write(b"PO")?,
-			Parity::ParityEven => self.uart.blocking_write(b"PE")?,
-		}
-
-		// TODO: check module response
-
-		Ok(())
-	}
-
 	///
-	pub async fn ping(&mut self) -> Result<(), Hc06Error> {
-		self.uart.write(b"AT").await?;
+	pub async fn ping(&mut self) -> Result<bool, Hc06Error> {
+		let mut buffer = [0_u8; Answer::BUFFER_SIZE];
+		let length = Answer::Pong.serialize(&mut buffer);
 
-		let mut buffer = [0_u8; 2];
+		self.uart.write(&buffer[..length]).await?;
 
+		trace!("Sent Pong");
+		let mut buffer = [0_u8; Message::BUFFER_SIZE];
 		self.uart.read(&mut buffer).await?;
-		let string = buffer.iter().map(|b| *b as char).collect::<String<2>>();
 
-		trace!("AT ping response : {}", string);
+		let message = Message::deserialize(&buffer).unwrap();
 
-		if string == "OK" {
-			Ok(())
-		} else {
-			Err(Hc06Error::NotOkResponse)
-		}
+		Ok(message == Message::Ping)
 	}
 }
 
