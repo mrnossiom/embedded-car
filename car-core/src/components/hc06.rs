@@ -3,10 +3,9 @@
 use car_transport::{Answer, Message, Transport};
 use defmt::trace;
 use embassy_stm32::{
-	usart::{self, BasicInstance, Config, Parity, Uart, UartTx},
+	usart::{self, BasicInstance, Config, Uart},
 	Peripheral,
 };
-use heapless::String;
 
 /// Represents a `HC-06` bluetooth module.
 pub struct Hc06<'a, UartInstance, TxDma, RxDma>

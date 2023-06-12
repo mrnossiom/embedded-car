@@ -30,17 +30,17 @@ heapless = { version = "0.7.16", features = ["defmt-impl"] }
 
 [dependencies.embassy-executor]
 git = "https://github.com/embassy-rs/embassy.git"
-branch = "master"
+branch = "main"
 features = ["nightly", "defmt", "integrated-timers"]
 
 [dependencies.embassy-stm32]
 git = "https://github.com/embassy-rs/embassy.git"
-branch = "master"
+branch = "main"
 features = ["stm32f103c8", "nightly", "defmt", "time-driver-tim4", "exti"]
 
 [dependencies.embassy-time]
 git = "https://github.com/embassy-rs/embassy.git"
-branch = "master"
+branch = "main"
 features = ["nightly", "defmt"]
 
 [profile.release]
