@@ -3,7 +3,8 @@
 use car_transport::{Answer, Message, Transport};
 use defmt::trace;
 use embassy_stm32::{
-	usart::{self, BasicInstance, Config, Uart},
+	interrupt::typelevel::Binding,
+	usart::{self, BasicInstance, Config, InterruptHandler, Uart},
 	Peripheral,
 };
 
@@ -37,7 +38,7 @@ where
 		UartPeripheral: Peripheral<P = UartInstance> + 'a,
 		TxPin: usart::TxPin<UartInstance>,
 		RxPin: usart::RxPin<UartInstance>,
-		Irq: Peripheral<P = UartInstance::Interrupt> + 'a,
+		Irq: Binding<UartInstance::Interrupt, InterruptHandler<UartInstance>> + 'a,
 		TxDmaPeripheral: Peripheral<P = TxDma> + 'a,
 		RxDmaPeripheral: Peripheral<P = RxDma> + 'a,
 	>(

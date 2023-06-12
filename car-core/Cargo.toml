@@ -29,18 +29,24 @@ panic-probe = { version = "0.3", features = ["print-defmt"] }
 heapless = { version = "0.7.16", features = ["defmt-impl"] }
 
 [dependencies.embassy-executor]
+version = "0.2"
 git = "https://github.com/embassy-rs/embassy.git"
-branch = "main"
-features = ["nightly", "defmt", "integrated-timers"]
+features = [
+	"nightly",
+	"defmt",
+	"integrated-timers",
+	"arch-cortex-m",
+	"executor-thread",
+]
 
 [dependencies.embassy-stm32]
+version = "0.1"
 git = "https://github.com/embassy-rs/embassy.git"
-branch = "main"
-features = ["stm32f103c8", "nightly", "defmt", "time-driver-tim4", "exti"]
+features = ["nightly", "defmt", "stm32f103c8", "time-driver-tim4", "exti"]
 
 [dependencies.embassy-time]
+version = "0.1"
 git = "https://github.com/embassy-rs/embassy.git"
-branch = "main"
 features = ["nightly", "defmt"]
 
 [profile.release]
