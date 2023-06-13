@@ -26,7 +26,7 @@ You can download a packed executable on the website by donating $8 or build it f
 -   **Blue Pill** Board (`STM32F103C8T6`) - [STM32-BASE](https://stm32-base.org/boards/STM32F103C8T6-Blue-Pill) - [Pinout Diagram](https://github.com/siyouluo/STM32-Blue-Pill/blob/master/PDF/The-Generic-STM32F103-Pinout-Diagram.pdf)
 -   **ST-Link** V2 (`STM32F101C8T6`) - [STM32-base](https://stm32-base.org/boards/Debugger-STM32F101C8T6-STLINKV2)
 -   Motor Driver Module (`HW-095` containing a `L298N`) - [Components101](https://components101.com/modules/l293n-motor-driver-module) and [AllDataSheets](https://www.alldatasheet.fr/datasheet-pdf/pdf/22440/STMICROELECTRONICS/L298N.html)
--   **_Classic_ Bluetooth** module (`HC-05`) - [ElectroSchematics](https://www.electroschematics.com/wp-content/uploads/2013/07/HCSR04-datasheet-version-2.pdf)
+-   **Bluetooth v4 (BLE)** module (`HM-10` containing a `TI CC2540`) - [HackSpark](https://hackspark.fr/fr/outils-de-dev/1467-hm-10-serial-port-ble-cc2540-module-with-logic-level-translator-master-slave-.html) [CornellEngineering](https://people.ece.cornell.edu/land/courses/ece4760/PIC32/uart/HM10/DSD%20TECH%20HM-10%20datasheet.pdfs)
     The `Classic` bit is important since I spent a lot of time using a BLE only library. We could upgrade to a `BLE` module later on like the `HM-10`.
 -   **Ultrasonic Sensor** (`HC-SR04`) - [SparkFun](https://cdn.sparkfun.com/datasheets/Sensors/Proximity/HCSR04.pdf)
 -   **Servo Motor** (`SG90`) - [DataSheetsPDF](https://datasheetspdf.com/pdf/791970/TowerPro/SG90/1)
@@ -53,4 +53,5 @@ You can download a packed executable on the website by donating $8 or build it f
 Project contains multiples crates to control or program behaviour.
 
 -   `car-core`: contains microcontroller logic
--   `car-controller`: provides a `CLI` and a user interface to interact via `Bluetooth` with the car.
+-   `car-controller`: provides a `CLI` and a user interface to interact via `Bluetooth` with the car
+-   `car-transport`: contains message logic between the _car_ and the _controller_

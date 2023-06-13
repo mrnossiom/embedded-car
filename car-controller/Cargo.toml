@@ -11,14 +11,12 @@ edition = "2021"
 license = "MIT"
 
 [dependencies]
-car-core = { version = "0.1.0", path = "../car-core" }
 car-transport = { version = "0.1.0", path = "../car-transport" }
 
-btleplug = "0.10.4"
+btleplug = "0.10.5"
 color-eyre = "0.6.2"
-egui = "0.20.1"
-futures = "0.3.25"
-gilrs = "0.10.1"
-thiserror = "1.0.38"
-tokio = { version = "1.24.2", features = ["full"] }
-uuid = { version = "1.2.2", features = ["v4"] }
+egui = "0.22.0"
+futures = "0.3.28"
+gilrs = "0.10.2"
+thiserror = "1.0.40"
+tokio = { version = "1.28.2", features = ["full"] }
