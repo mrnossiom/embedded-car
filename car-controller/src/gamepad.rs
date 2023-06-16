@@ -28,8 +28,8 @@ impl Controller {
 	/// Initialises a new controller
 	///
 	/// # Errors
-	/// In case no gamepad is connected, or the gamepad is not supported
-	pub fn new() -> color_eyre::Result<Self> {
+	/// In case the gamepad is not supported
+	pub fn new() -> color_eyre::Result<Option<Self>> {
 		let manager = Gilrs::new().map_err(|err| match err {
 			gilrs::Error::InvalidAxisToBtn => eyre!("Invalid axis to button"),
 			gilrs::Error::NotImplemented(_) => eyre!("Not implemented for the current platform"),
@@ -39,13 +39,17 @@ impl Controller {
 		let gamepad_id = manager
 			.gamepads()
 			.find(|(_gp_id, gp)| gp.is_connected())
-			.map(|(gp_id, _)| gp_id)
-			.ok_or(color_eyre::eyre::eyre!("No gamepad connected"))?;
+			.map(|(gp_id, _)| gp_id);
 
-		Ok(Self {
-			manager,
-			gamepad_id,
-		})
+		gamepad_id.map_or_else(
+			|| Ok(None),
+			|gamepad_id| {
+				Ok(Some(Self {
+					manager,
+					gamepad_id,
+				}))
+			},
+		)
 	}
 
 	/// Returns the active [`Gamepad`]

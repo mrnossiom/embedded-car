@@ -11,3 +11,8 @@ license = "MIT"
 edition = "2021"
 
 [dependencies]
+defmt = { version = "0.3.4", optional = true }
+defmt-macros = { version = "0.3.5", optional = true }
+
+[features]
+defmt = ["dep:defmt", "dep:defmt-macros"]

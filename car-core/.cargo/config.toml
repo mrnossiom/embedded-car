@@ -6,7 +6,8 @@ runner = "probe-run --chip STM32F103C8"
 target = "thumbv7m-none-eabi"
 
 [alias]
-rrun = "run --release"
+rr = "run --release"
+br = "build --release"
 
 [env]
 DEFMT_LOG = "trace"

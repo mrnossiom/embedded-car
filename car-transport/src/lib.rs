@@ -60,6 +60,7 @@ pub enum TransportError {
 
 /// Messages sent by the controller
 #[derive(Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt_macros::Format))]
 pub enum Message {
 	/// Ping the car
 	///
@@ -147,6 +148,7 @@ impl Transport for Message {
 
 /// Messages sent by the car microcontroller
 #[derive(Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "defmt", derive(defmt_macros::Format))]
 pub enum Answer {
 	/// Acknowledge a ping from the controller
 	/// Can also be used to check if there is still a controller connected

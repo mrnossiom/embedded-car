@@ -35,11 +35,12 @@ impl Bluetooth {
 	///
 	/// # Errors
 	/// In case we don't find a device or if the peripheral does not have a characteristic to write and notify
-	pub async fn new(peripheral: Peripheral) -> Result<Self, CarBluetoothError> {
+	pub async fn new(peripheral: Peripheral) -> Result<Self, Error> {
 		peripheral.discover_services().await?;
-		let mut characteristics = peripheral.characteristics().into_iter();
+		let characteristics = peripheral.characteristics().into_iter();
 
 		let characteristic = characteristics
+			.inspect(|c| log::info!("Found characteristic: {c}"))
 			.find(|c| {
 				c.properties.contains(
 					CharPropFlags::READ
@@ -47,7 +48,7 @@ impl Bluetooth {
 						| CharPropFlags::NOTIFY,
 				)
 			})
-			.ok_or(CarBluetoothError::Io(io::Error::new(
+			.ok_or(Error::Io(io::Error::new(
 				io::ErrorKind::Unsupported,
 				"Bluetooth device does not have a characteristic to write and notify",
 			)))?;
@@ -70,7 +71,7 @@ impl Bluetooth {
 	pub async fn connect_by_name(
 		name: &str,
 		timeout: Option<Duration>,
-	) -> Result<Self, CarBluetoothError> {
+	) -> Result<Self, Error> {
 		let manager = Manager::new().await?;
 
 		// We use the first Bluetooth adapter
@@ -78,7 +79,7 @@ impl Bluetooth {
 		let central = adapters
 			.into_iter()
 			.next()
-			.ok_or(CarBluetoothError::BluetoothNotSupported)?;
+			.ok_or(Error::BluetoothNotSupported)?;
 
 		central.start_scan(ScanFilter::default()).await?;
 
@@ -101,7 +102,7 @@ impl Bluetooth {
 					}
 				}
 				_ = &mut timeout => {
-					return Err(CarBluetoothError::Io(io::Error::new(io::ErrorKind::TimedOut, "Bluetooth device not found")));
+					return Err(Error::Io(io::Error::new(io::ErrorKind::TimedOut, "Bluetooth device not found")));
 				}
 			}
 		};
@@ -115,7 +116,7 @@ impl Bluetooth {
 	///
 	/// # Errors
 	/// In case the write operation fails
-	pub async fn write(&mut self, bytes: &[u8]) -> Result<(), CarBluetoothError> {
+	pub async fn write(&mut self, bytes: &[u8]) -> Result<(), Error> {
 		self.peripheral
 			.write(&self.characteristic, bytes, WriteType::WithoutResponse)
 			.await?;
@@ -127,7 +128,7 @@ impl Bluetooth {
 	///
 	/// # Errors
 	/// In case the read operation fails
-	pub async fn read(&mut self) -> Result<Vec<u8>, CarBluetoothError> {
+	pub async fn read(&mut self) -> Result<Vec<u8>, Error> {
 		let bytes = self.peripheral.read(&self.characteristic).await?;
 
 		Ok(bytes)
@@ -137,7 +138,7 @@ impl Bluetooth {
 	///
 	/// # Errors
 	/// In case the read operation fails
-	pub async fn receive(&mut self, bytes: &mut [u8]) -> Result<usize, CarBluetoothError> {
+	pub async fn receive(&mut self, bytes: &mut [u8]) -> Result<usize, Error> {
 		let stream = self.events.next().await.ok_or_else(|| {
 			std::io::Error::new(
 				std::io::ErrorKind::TimedOut,
@@ -157,7 +158,7 @@ impl Bluetooth {
 
 /// Errors that can occur when using [`CarBluetooth`]
 #[derive(Debug, thiserror::Error)]
-pub enum CarBluetoothError {
+pub enum Error {
 	/// Bluetooth is not supported on this device
 	#[error("Bluetooth is not supported on this device")]
 	BluetoothNotSupported,

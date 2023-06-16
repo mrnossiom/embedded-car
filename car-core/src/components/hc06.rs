@@ -1,7 +1,6 @@
-//! `HC-06` bluetooth module driver
+//! `HC-06` or `HM-10` bluetooth module driver (don't know yet)
 
 use car_transport::{Answer, Message, Transport};
-use defmt::trace;
 use embassy_stm32::{
 	interrupt::typelevel::Binding,
 	usart::{self, BasicInstance, Config, InterruptHandler, Uart},
@@ -52,23 +51,25 @@ where
 		let mut config = Config::default();
 		config.baudrate = 9600;
 
-		let mut uart = Uart::new(peripheral, rx, tx, irq, tx_dma, rx_dma, config);
+		let uart = Uart::new(peripheral, rx, tx, irq, tx_dma, rx_dma, config);
 
 		Self { uart }
 	}
 
-	///
-	pub async fn ping(&mut self) -> Result<bool, Hc06Error> {
+	/// Returns whether a server has successfully answered our ping
+	pub async fn ping(&mut self) -> Result<bool, Error> {
 		let mut buffer = [0_u8; Answer::BUFFER_SIZE];
 		let length = Answer::Pong.serialize(&mut buffer);
 
 		self.uart.write(&buffer[..length]).await?;
 
-		trace!("Sent Pong");
+		defmt::debug!("Sent Pong");
 		let mut buffer = [0_u8; Message::BUFFER_SIZE];
 		self.uart.read(&mut buffer).await?;
+		defmt::trace!("Received {}", &buffer);
 
-		let message = Message::deserialize(&buffer).unwrap();
+		let message = Message::deserialize(&buffer).map_err(|_| Error::UnableToDeserialize)?;
+		defmt::debug!("Received {:?}", &message);
 
 		Ok(message == Message::Ping)
 	}
@@ -76,15 +77,18 @@ where
 
 /// Represents a `HC-06` bluetooth module error.
 #[derive(defmt::Format)]
-pub enum Hc06Error {
+pub enum Error {
 	/// The module did not respond with `OK` or the right answer for AT commands.
 	NotOkResponse,
+
+	/// Could not deserialize the answer
+	UnableToDeserialize,
 
 	/// There was a problem with the UART communication itself.
 	USArt(usart::Error),
 }
 
-impl From<usart::Error> for Hc06Error {
+impl From<usart::Error> for Error {
 	fn from(error: usart::Error) -> Self {
 		Self::USArt(error)
 	}

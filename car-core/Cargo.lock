@@ -91,6 +91,10 @@ dependencies = [
 [[package]]
 name = "car-transport"
 version = "0.1.0"
+dependencies = [
+ "defmt",
+ "defmt-macros",
+]
 
 [[package]]
 name = "cfg-if"

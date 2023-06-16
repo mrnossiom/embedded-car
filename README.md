@@ -27,7 +27,6 @@ You can download a packed executable on the website by donating $8 or build it f
 -   **ST-Link** V2 (`STM32F101C8T6`) - [STM32-base](https://stm32-base.org/boards/Debugger-STM32F101C8T6-STLINKV2)
 -   Motor Driver Module (`HW-095` containing a `L298N`) - [Components101](https://components101.com/modules/l293n-motor-driver-module) and [AllDataSheets](https://www.alldatasheet.fr/datasheet-pdf/pdf/22440/STMICROELECTRONICS/L298N.html)
 -   **Bluetooth v4 (BLE)** module (`HM-10` containing a `TI CC2540`) - [HackSpark](https://hackspark.fr/fr/outils-de-dev/1467-hm-10-serial-port-ble-cc2540-module-with-logic-level-translator-master-slave-.html) [CornellEngineering](https://people.ece.cornell.edu/land/courses/ece4760/PIC32/uart/HM10/DSD%20TECH%20HM-10%20datasheet.pdfs)
-    The `Classic` bit is important since I spent a lot of time using a BLE only library. We could upgrade to a `BLE` module later on like the `HM-10`.
 -   **Ultrasonic Sensor** (`HC-SR04`) - [SparkFun](https://cdn.sparkfun.com/datasheets/Sensors/Proximity/HCSR04.pdf)
 -   **Servo Motor** (`SG90`) - [DataSheetsPDF](https://datasheetspdf.com/pdf/791970/TowerPro/SG90/1)
 

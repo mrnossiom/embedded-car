@@ -10,6 +10,8 @@
 	clippy::pedantic,
 	clippy::cargo
 )]
+// The executor is single threaded
+#![allow(clippy::future_not_send)]
 
 use {defmt_rtt as _, panic_probe as _};
 

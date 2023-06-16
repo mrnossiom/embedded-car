@@ -19,7 +19,7 @@ test = false
 bench = false
 
 [dependencies]
-car-transport = { path = "../car-transport" }
+car-transport = { path = "../car-transport", features = ["defmt"] }
 
 cortex-m = { version = "0.7.7", features = ["critical-section-single-core"] }
 cortex-m-rt = "0.7.2"
