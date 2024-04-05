@@ -54,3 +54,10 @@ codegen-units = 1
 # Symbols are nice and they don't increase the size on Flash
 debug = true
 lto = true
+
+[profile.dev]
+opt-level = "z"
+strip = true
+lto = true
+codegen-units = 1
+panic = "abort"
