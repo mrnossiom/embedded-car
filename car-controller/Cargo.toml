@@ -10,8 +10,10 @@ readme = "README.md"
 edition = "2021"
 license = "MIT"
 
+default-run = "cli"
+
 [dependencies]
-car-transport = { version = "0.1.0", path = "../car-transport" }
+car-transport = { workspace = true }
 
 btleplug = "0.10.5"
 color-eyre = "0.6.2"

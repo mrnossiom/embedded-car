@@ -26,7 +26,7 @@ impl fmt::Debug for Bluetooth {
 		f.debug_struct("CarBluetooth")
 			.field("peripheral", &self.peripheral)
 			.field("characteristic", &self.characteristic)
-			.finish()
+			.finish_non_exhaustive()
 	}
 }
 
@@ -68,10 +68,7 @@ impl Bluetooth {
 	/// # Errors
 	/// In case we cannot build a bluetooth manager
 	/// In case the peripheral is not found or the connection fails
-	pub async fn connect_by_name(
-		name: &str,
-		timeout: Option<Duration>,
-	) -> Result<Self, Error> {
+	pub async fn connect_by_name(name: &str, timeout: Option<Duration>) -> Result<Self, Error> {
 		let manager = Manager::new().await?;
 
 		// We use the first Bluetooth adapter
@@ -101,7 +98,7 @@ impl Bluetooth {
 						}
 					}
 				}
-				_ = &mut timeout => {
+				() = &mut timeout => {
 					return Err(Error::Io(io::Error::new(io::ErrorKind::TimedOut, "Bluetooth device not found")));
 				}
 			}

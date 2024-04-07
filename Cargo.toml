@@ -1,0 +1,36 @@
+[workspace]
+resolver = "2"
+members = [
+    "car-controller",
+    "car-core",
+    "car-transport",
+]
+
+[workspace.dependencies]
+car-transport = { path = "car-transport" }
+
+[workspace.lints]
+[workspace.lints.clippy]
+cargo = "warn"
+nursery = "warn"
+pedantic = "warn"
+
+dbg_macro = "warn"
+missing_docs_in_private_items = "warn"
+todo = "warn"
+unwrap_used = "warn"
+[workspace.lints.rustdoc]
+all = "warn"
+
+[patch.crates-io]
+embassy-executor = { git = "https://github.com/embassy-rs/embassy" }
+embassy-time = { git = "https://github.com/embassy-rs/embassy" }
+embassy-stm32 = { git = "https://github.com/embassy-rs/embassy" }
+
+[profile.release]
+debug = true
+opt-level = "z"
+strip = true
+lto = true
+codegen-units = 1
+panic = "abort"

@@ -24,25 +24,25 @@
       formatter = forAllPkgs (pkgs: pkgs.nixpkgs-fmt);
 
       devShells = forAllPkgs (pkgs:
+        with pkgs.lib;
         let
-          rustToolchain = pkgs.pkgsBuildHost.rust-bin.fromRustupToolchainFile ./car-core/rust-toolchain.toml;
-
-          libraries = [ ];
+          file-rust-toolchain = pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
+          rust-toolchain = file-rust-toolchain.override { extensions = [ "rust-analyzer" ]; };
         in
         {
-          default = pkgs.mkShell {
+          default = pkgs.mkShell rec {
             nativeBuildInputs = with pkgs; [
               pkg-config
-              rustToolchain
-              rust-analyzer
+              rust-toolchain
               act
+              just
 
               probe-run
             ];
-            buildInputs = [ ];
+            buildInputs = with pkgs; [ dbus systemd ];
 
             RUST_SRC_PATH = pkgs.rustPlatform.rustLibSrc;
-            LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath libraries;
+            LD_LIBRARY_PATH = makeLibraryPath buildInputs;
 
             RUST_LOG = "";
           };

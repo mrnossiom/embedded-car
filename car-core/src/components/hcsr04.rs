@@ -2,7 +2,7 @@
 
 use embassy_stm32::{
 	exti::ExtiInput,
-	gpio::{Input, Level, Output, Pin, Pull, Speed},
+	gpio::{Level, Output, Pin, Pull, Speed},
 	Peripheral,
 };
 use embassy_time::{Duration, Instant, Timer};
@@ -12,31 +12,22 @@ use embassy_time::{Duration, Instant, Timer};
 ///
 /// No need here for a kind of `waiting_for_echo` flag, because the
 /// borrow checker ensures there are only one mutable reference.
-pub struct HcSr04<'a, TriggerPin, EchoPin>
-where
-	TriggerPin: Pin,
-	EchoPin: Pin,
-{
+pub struct HcSr04<'a> {
 	/// The pin that triggers the ping.
-	trigger: Output<'a, TriggerPin>,
+	trigger: Output<'a>,
 	/// The pin that receives the echo.
-	echo: ExtiInput<'a, EchoPin>,
+	echo: ExtiInput<'a>,
 }
 
-impl<'a, TriggerPin, EchoPin> HcSr04<'a, TriggerPin, EchoPin>
-where
-	TriggerPin: Pin,
-	EchoPin: Pin,
-{
+impl<'a> HcSr04<'a> {
 	/// Creates a `HC-SCR04` sensor handle from the trigger and echo pins.
-	pub fn from_pins<IrqChannel: Peripheral<P = EchoPin::ExtiChannel> + 'a>(
-		trigger: TriggerPin,
-		echo: EchoPin,
-		channel: IrqChannel,
-	) -> HcSr04<'a, TriggerPin, EchoPin> {
+	pub fn from_pins<EchoPin: Pin>(
+		trigger: impl Peripheral<P = impl Pin> + 'a,
+		echo: impl Peripheral<P = EchoPin> + 'a,
+		channel: impl Peripheral<P = EchoPin::ExtiChannel> + 'a,
+	) -> HcSr04<'a> {
 		let trigger = Output::new(trigger, Level::Low, Speed::Low);
-		let echo = Input::new(echo, Pull::None);
-		let echo = ExtiInput::new(echo, channel);
+		let echo = ExtiInput::new(echo, channel, Pull::None);
 
 		Self { trigger, echo }
 	}

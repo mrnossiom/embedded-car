@@ -4,29 +4,21 @@
 //! Both are available in the [`hardware-specs`](https://github.com/MrNossiom/embedded-car/tree/main/hardware-specs) folder in the repository.
 
 use embassy_stm32::{
-	gpio::{Level, Output, Pin, Speed},
-	pwm::{
-		simple_pwm::{PwmPin, SimplePwm},
-		CaptureCompare16bitInstance, Channel, Channel1Pin, Channel2Pin,
-	},
+	gpio::{Level, Output, OutputType, Pin, Speed},
 	time::hz,
+	timer::{
+		simple_pwm::{PwmPin, SimplePwm},
+		Channel, Channel1Pin, Channel2Pin, GeneralInstance4Channel,
+	},
 	Peripheral,
 };
 
 /// Manages a new L298N a Dual H-Bridge Motor Controller module
-pub struct L298N<'a, In1, In2, In3, In4, TimerPin>
-where
-	In1: Pin,
-	In2: Pin,
-	In3: Pin,
-	In4: Pin,
-
-	TimerPin: CaptureCompare16bitInstance,
-{
+pub struct L298N<'a, TimerPin: GeneralInstance4Channel> {
 	/// The left motor controller
-	left: SingleMotor<'a, In1, In2>,
+	left: SingleMotor<'a>,
 	/// The right motor controller
-	right: SingleMotor<'a, In3, In4>,
+	right: SingleMotor<'a>,
 
 	/// The `PWM` to control the speed of the motors
 	/// `Ch1` is used for the left motor
@@ -34,34 +26,30 @@ where
 	pwm: SimplePwm<'a, TimerPin>,
 }
 
-impl<'a, In1, In2, In3, In4, TimerPin> L298N<'a, In1, In2, In3, In4, TimerPin>
-where
-	In1: Pin,
-	In2: Pin,
-	In3: Pin,
-	In4: Pin,
-
-	TimerPin: CaptureCompare16bitInstance,
-{
+impl<'a, TimerPin: GeneralInstance4Channel> L298N<'a, TimerPin> {
 	/// Creates a new `L298N` motor controller
-	pub fn from_pins<
-		Timer: Peripheral<P = TimerPin> + 'a,
-		PwmA: Channel1Pin<TimerPin>,
-		PwmB: Channel2Pin<TimerPin>,
-	>(
-		in1: In1,
-		in2: In2,
-		pwm_left: PwmA,
+	pub fn from_pins(
+		in1: impl Peripheral<P = impl Pin> + 'a,
+		in2: impl Peripheral<P = impl Pin> + 'a,
+		pwm_left: impl Peripheral<P = impl Channel1Pin<TimerPin> + 'a> + 'a,
 
-		in3: In3,
-		in4: In4,
-		pwm_right: PwmB,
+		in3: impl Peripheral<P = impl Pin> + 'a,
+		in4: impl Peripheral<P = impl Pin> + 'a,
+		pwm_right: impl Peripheral<P = impl Channel2Pin<TimerPin> + 'a> + 'a,
 
-		timer: Timer,
-	) -> L298N<'a, In1, In2, In3, In4, TimerPin> {
-		let pwm_left = PwmPin::new_ch1(pwm_left);
-		let pwm_right = PwmPin::new_ch2(pwm_right);
-		let mut pwm = SimplePwm::new(timer, Some(pwm_left), Some(pwm_right), None, None, hz(50));
+		timer: impl Peripheral<P = TimerPin> + 'a,
+	) -> L298N<'a, TimerPin> {
+		let pwm_left = PwmPin::new_ch1(pwm_left, OutputType::PushPull);
+		let pwm_right = PwmPin::new_ch2(pwm_right, OutputType::PushPull);
+		let mut pwm = SimplePwm::new(
+			timer,
+			Some(pwm_left),
+			Some(pwm_right),
+			None,
+			None,
+			hz(50),
+			Default::default(),
+		);
 
 		// Set full power to both motors
 		pwm.set_duty(Channel::Ch1, pwm.get_max_duty() - 1);
@@ -108,12 +96,12 @@ where
 	}
 
 	/// Returns the actual maximum duty
-	pub fn get_max_duty(&self) -> u16 {
+	pub fn get_max_duty(&self) -> u32 {
 		self.pwm.get_max_duty() - 1
 	}
 
 	/// Changes the motor speed by a percentage
-	pub fn set_duty(&mut self, duty_left: Option<u16>, duty_right: Option<u16>) -> &mut Self {
+	pub fn set_duty(&mut self, duty_left: Option<u32>, duty_right: Option<u32>) -> &mut Self {
 		if let Some(duty) = duty_left {
 			self.pwm.set_duty(Channel::Ch1, duty);
 		}
@@ -137,12 +125,12 @@ where
 		self.set_duty(
 			duty_left.map(|duty| {
 				self.get_max_duty()
-					.checked_div(u16::from(duty))
+					.checked_div(u32::from(duty))
 					.unwrap_or(0)
 			}),
 			duty_right.map(|duty| {
 				self.get_max_duty()
-					.checked_div(u16::from(duty))
+					.checked_div(u32::from(duty))
 					.unwrap_or(0)
 			}),
 		);
@@ -152,23 +140,19 @@ where
 }
 
 /// Manages a single motor
-pub struct SingleMotor<'a, InA, InB>
-where
-	InA: Pin,
-	InB: Pin,
-{
+pub struct SingleMotor<'a> {
 	/// The first control pin
-	pub(crate) in_a: Output<'a, InA>,
+	pub(crate) in_a: Output<'a>,
 	/// The second control pin
-	pub(crate) in_b: Output<'a, InB>,
+	pub(crate) in_b: Output<'a>,
 }
-impl<'a, InA, InB> SingleMotor<'a, InA, InB>
-where
-	InA: Pin,
-	InB: Pin,
-{
+
+impl<'a> SingleMotor<'a> {
 	/// Creates a new `SingleMotor` from the two control pins.
-	fn from_pins(in_a: InA, in_b: InB) -> Self {
+	fn from_pins(
+		in_a: impl Peripheral<P = impl Pin> + 'a,
+		in_b: impl Peripheral<P = impl Pin> + 'a,
+	) -> Self {
 		SingleMotor {
 			in_a: Output::new(in_a, Level::Low, Speed::Low),
 			in_b: Output::new(in_b, Level::Low, Speed::Low),

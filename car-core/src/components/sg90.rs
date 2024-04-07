@@ -1,27 +1,22 @@
 //! `SG-90` servo motor driver
 
 use embassy_stm32::{
-	pwm::{
-		simple_pwm::{PwmPin, SimplePwm},
-		CaptureCompare16bitInstance, Channel, Channel1Pin,
-	},
+	gpio::OutputType,
 	time::hz,
+	timer::{
+		simple_pwm::{PwmPin, SimplePwm},
+		Channel, Channel1Pin, GeneralInstance4Channel,
+	},
 	Peripheral,
 };
 
 /// Represents a small `SG-90` servo motor.
-pub struct Sg90<'a, TimerPeripheral>
-where
-	TimerPeripheral: CaptureCompare16bitInstance,
-{
+pub struct Sg90<'a, TimerPeripheral: GeneralInstance4Channel> {
 	/// The underlying `PWM` to control the servo motor
 	pwm: SimplePwm<'a, TimerPeripheral>,
 }
 
-impl<'a, TimerPeripheral> Sg90<'a, TimerPeripheral>
-where
-	TimerPeripheral: CaptureCompare16bitInstance,
-{
+impl<'a, TimerPeripheral: GeneralInstance4Channel> Sg90<'a, TimerPeripheral> {
 	/// Creates a `SG90` servo handle from the pwn pin.
 	pub fn from_pin<
 		Timer: Peripheral<P = TimerPeripheral> + 'a,
@@ -30,19 +25,27 @@ where
 		pwm_pin: PwmA,
 		timer: Timer,
 	) -> Sg90<'a, TimerPeripheral> {
-		let pwm_pin = PwmPin::new_ch1(pwm_pin);
-		let pwm = SimplePwm::new(timer, Some(pwm_pin), None, None, None, hz(50));
+		let pwm_pin = PwmPin::new_ch1(pwm_pin, OutputType::PushPull);
+		let pwm = SimplePwm::new(
+			timer,
+			Some(pwm_pin),
+			None,
+			None,
+			None,
+			hz(50),
+			Default::default(),
+		);
 
 		Self { pwm }
 	}
 
 	/// Returns the actual maximum duty
-	pub fn get_max_duty(&self) -> u16 {
+	pub fn get_max_duty(&self) -> u32 {
 		self.pwm.get_max_duty() - 1
 	}
 
 	/// Changes the motor speed by a percentage
-	pub fn set_duty(&mut self, duty: u16) -> &mut Self {
+	pub fn set_duty(&mut self, duty: u32) -> &mut Self {
 		self.pwm.set_duty(Channel::Ch1, duty);
 
 		self
@@ -56,7 +59,7 @@ where
 		// `checked_div` is used to allow using 0 as a percentage
 		self.set_duty(
 			self.get_max_duty()
-				.checked_div(u16::from(duty))
+				.checked_div(u32::from(duty))
 				.unwrap_or(0),
 		);
 

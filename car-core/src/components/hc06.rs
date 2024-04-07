@@ -51,7 +51,7 @@ where
 		let mut config = Config::default();
 		config.baudrate = 9600;
 
-		let uart = Uart::new(peripheral, rx, tx, irq, tx_dma, rx_dma, config);
+		let uart = Uart::new(peripheral, rx, tx, irq, tx_dma, rx_dma, config).unwrap();
 
 		Self { uart }
 	}

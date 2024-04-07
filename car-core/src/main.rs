@@ -2,14 +2,6 @@
 
 #![no_std]
 #![no_main]
-#![feature(type_alias_impl_trait)]
-#![warn(
-	clippy::missing_docs_in_private_items,
-	clippy::unwrap_used,
-	clippy::nursery,
-	clippy::pedantic,
-	clippy::cargo
-)]
 // The executor is single threaded
 #![allow(clippy::future_not_send)]
 
@@ -21,8 +13,7 @@ use embassy_executor::Spawner;
 use embassy_stm32::{
 	bind_interrupts,
 	gpio::{Level, Output, Speed},
-	peripherals::{self, PC13},
-	usart, Config,
+	peripherals, usart, Config,
 };
 use embassy_time::{Duration, Timer};
 
@@ -35,7 +26,7 @@ pub static IS_CONNECTED_TO_CONTROLLER: AtomicBool = AtomicBool::new(false);
 
 #[embassy_executor::task]
 /// Tells if the program is running on the microcontroller.
-async fn alive_blinker(mut led: Output<'static, PC13>) {
+async fn alive_blinker(mut led: Output<'static>) {
 	loop {
 		led.toggle();
 		Timer::after(if IS_CONNECTED_TO_CONTROLLER.load(Ordering::Relaxed) {

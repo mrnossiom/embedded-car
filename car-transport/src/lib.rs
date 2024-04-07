@@ -1,14 +1,6 @@
 //! Implementation of the transport protocol for the car.
 
 #![no_std]
-#![warn(
-	clippy::missing_docs_in_private_items,
-	clippy::unwrap_used,
-	clippy::nursery,
-	clippy::pedantic,
-	clippy::cargo
-)]
-#![cfg_attr(test, allow(clippy::unwrap_used, clippy::enum_glob_use))]
 
 /// A light custom transport protocol template that comes on top of bluetooth or serial communication.
 ///

@@ -1,5 +1,0 @@
-[toolchain]
-# Sould match <https://github.com/embassy-rs/embassy/blob/main/rust-toolchain.toml#L4> channel
-channel = "nightly-2023-05-18"
-components = ["rustfmt", "clippy"]
-targets = ["thumbv7m-none-eabi"]
