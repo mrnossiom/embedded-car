@@ -30,7 +30,7 @@ async fn alive_blinker(mut led: Output<'static>) {
 	loop {
 		led.toggle();
 		Timer::after(if IS_CONNECTED_TO_CONTROLLER.load(Ordering::Relaxed) {
-			Duration::from_millis(500)
+			Duration::from_millis(1000)
 		} else {
 			Duration::from_millis(125)
 		})

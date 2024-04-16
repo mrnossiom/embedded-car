@@ -1,8 +1,12 @@
+//! Sends car control commands to the car's bt module
+
 use car_controller::{Bluetooth, Controller};
 
 #[cfg(feature = "classic-bt")]
-const BLUETOOTH_MODULE_HC_06: &str = "HC-06";
+/// Bluetooth name of the HC-06 Classic BT module
+const BLUETOOTH_MODULE_HC_06: &str = "RenaultClio";
 #[cfg(feature = "ble")]
+/// Bluetooth name of the HM-10 BLE module
 const BLUETOOTH_MODULE_HM_10: &str = "BT05";
 
 #[tokio::main]

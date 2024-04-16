@@ -4,6 +4,7 @@ use embassy_stm32::{
 	gpio::OutputType,
 	time::hz,
 	timer::{
+		low_level::CountingMode,
 		simple_pwm::{PwmPin, SimplePwm},
 		Channel, Channel1Pin, GeneralInstance4Channel,
 	},
@@ -33,7 +34,7 @@ impl<'a, TimerPeripheral: GeneralInstance4Channel> Sg90<'a, TimerPeripheral> {
 			None,
 			None,
 			hz(50),
-			Default::default(),
+			CountingMode::default(),
 		);
 
 		Self { pwm }

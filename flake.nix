@@ -37,7 +37,8 @@
               act
               just
 
-              probe-run
+              probe-rs
+              fritzing
             ];
             buildInputs = with pkgs; [ dbus systemd ];
 
@@ -45,6 +46,7 @@
             LD_LIBRARY_PATH = makeLibraryPath buildInputs;
 
             RUST_LOG = "";
+            DEFMT_LOG = "debug";
           };
         });
     };

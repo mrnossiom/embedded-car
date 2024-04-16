@@ -7,6 +7,7 @@ use embassy_stm32::{
 	gpio::{Level, Output, OutputType, Pin, Speed},
 	time::hz,
 	timer::{
+		low_level::CountingMode,
 		simple_pwm::{PwmPin, SimplePwm},
 		Channel, Channel1Pin, Channel2Pin, GeneralInstance4Channel,
 	},
@@ -48,7 +49,7 @@ impl<'a, TimerPin: GeneralInstance4Channel> L298N<'a, TimerPin> {
 			None,
 			None,
 			hz(50),
-			Default::default(),
+			CountingMode::default(),
 		);
 
 		// Set full power to both motors

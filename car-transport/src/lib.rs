@@ -284,7 +284,7 @@ mod tests {
 	}
 
 	#[test]
-	fn can_serialize_message() {
+	fn can_serialize_message() -> Result<(), TransportError> {
 		let message = Message::GetSpeed;
 		let mut buffer = [0u8; Message::MAX_PAYLOAD_SIZE + 1];
 
@@ -292,12 +292,14 @@ mod tests {
 		assert_eq!(length, 1);
 		assert_eq!(&buffer[..length], &[0u8]);
 
-		let message = Message::deserialize(&buffer[..length]).unwrap();
+		let message = Message::deserialize(&buffer[..length])?;
 		assert_eq!(message, Message::GetSpeed);
+
+		Ok(())
 	}
 
 	#[test]
-	fn can_serialize_message_with_data() {
+	fn can_serialize_message_with_data() -> Result<(), TransportError> {
 		let message = Message::SetSpeed(100);
 		let mut buffer = [0u8; Message::MAX_PAYLOAD_SIZE + 1];
 
@@ -305,12 +307,14 @@ mod tests {
 		assert_eq!(length, 2);
 		assert_eq!(&buffer[..length], &[100u8, 100i8.to_be_bytes()[0]]);
 
-		let message = Message::deserialize(&buffer[..length]).unwrap();
+		let message = Message::deserialize(&buffer[..length])?;
 		assert_eq!(message, Message::SetSpeed(100));
+
+		Ok(())
 	}
 
 	#[test]
-	fn can_serialize_answer() {
+	fn can_serialize_answer() -> Result<(), TransportError> {
 		let answer = Answer::AckSpeed;
 		let mut buffer = [0u8; Answer::MAX_PAYLOAD_SIZE + 1];
 
@@ -318,12 +322,14 @@ mod tests {
 		assert_eq!(length, 1);
 		assert_eq!(&buffer[..length], &[100u8]);
 
-		let deserialized_message = Answer::deserialize(&buffer[..length]).unwrap();
+		let deserialized_message = Answer::deserialize(&buffer[..length])?;
 		assert_eq!(deserialized_message, Answer::AckSpeed);
+
+		Ok(())
 	}
 
 	#[test]
-	fn can_serialize_answer_with_data() {
+	fn can_serialize_answer_with_data() -> Result<(), TransportError> {
 		let answer = Answer::Direction(100);
 		let mut buffer = [0u8; Message::MAX_PAYLOAD_SIZE + 1];
 
@@ -331,12 +337,14 @@ mod tests {
 		assert_eq!(length, 2);
 		assert_eq!(&buffer[..length], &[1u8, 100i8.to_be_bytes()[0]]);
 
-		let answer = Answer::deserialize(&buffer[..length]).unwrap();
+		let answer = Answer::deserialize(&buffer[..length])?;
 		assert_eq!(answer, Answer::Direction(100));
+
+		Ok(())
 	}
 
 	#[test]
-	fn can_serialize_message_with_signed_integer() {
+	fn can_serialize_message_with_signed_integer() -> Result<(), TransportError> {
 		let answer = Answer::Direction(-100);
 		let mut buffer = [0u8; Message::MAX_PAYLOAD_SIZE + 1];
 
@@ -344,7 +352,9 @@ mod tests {
 		assert_eq!(length, 2);
 		assert_eq!(&buffer[..length], &[1u8, (-100i8).to_be_bytes()[0]]);
 
-		let answer = Answer::deserialize(&buffer[..length]).unwrap();
+		let answer = Answer::deserialize(&buffer[..length])?;
 		assert_eq!(answer, Answer::Direction(-100));
+
+		Ok(())
 	}
 }

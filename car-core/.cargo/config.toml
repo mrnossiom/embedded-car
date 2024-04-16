@@ -1,13 +1,6 @@
 [target.'cfg(all(target_arch = "arm", target_os = "none"))']
-# Replace with the used chip as listed in `probe-run --list-chips`
-runner = "probe-run --chip STM32F103C8"
+# Replace with the used chip as listed in `probe-rs chip list`
+runner = "probe-rs run --chip STM32F103C8"
 
 [build]
 target = "thumbv7m-none-eabi"
-
-[alias]
-rr = "run --release"
-br = "build --release"
-
-[env]
-DEFMT_LOG = "trace"

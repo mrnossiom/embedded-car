@@ -2,17 +2,10 @@
 
 ## Installation
 
--   `cargo install probe-run`, installs `probe-run` to flash the firmware to the microcontroller.
+-   `cargo install probe-rs`, installs `probe-rs` to flash the firmware to the microcontroller.
 -   `rustup target add thumbv7m-none-eabi`, adds the target to the rust toolchain if you don't have it already. (Although the `rust-toolchain.toml` should do it already)
--   `probe-run --list-probes`, lists all the connected probes, to check if your `ST-Link` is correctly recognized.
 
-### VS Code
-
-> Extracted from the `probe-rs` docs - [VSCode setup](https://probe.rs/docs/tools/vscode/)
-
--   Install the `probe-rs-debugger` extension in VS Code, by downloading the latest available `probe-rs-debugger-x.x.x.vsix` from the [probe-rs/vscode release page](https://github.com/probe-rs/vscode/releases)
-    Then, install the extension with `code --install-extension probe-rs-debugger-x.x.x.vsix`
--   You also need to install the server component: `cargo install --git https://github.com/probe-rs/probe-rs --force --branch master probe-rs-debugger`
+There is a [`probe-rs` extension](https://probe.rs/docs/tools/debugger/#building-and-testing-the-debug-extension-in-vs-code) for VS Code
 
 ### Circuit (Fritzing)
 
