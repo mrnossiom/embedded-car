@@ -39,6 +39,7 @@
 
               probe-rs
               fritzing
+              usbutils
             ];
             buildInputs = with pkgs; [ dbus systemd ];
 

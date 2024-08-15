@@ -20,3 +20,7 @@ I tried to ping the module, but I didn’t get any satisfying response, only wei
 I reworked the repository to welcome a new ‘car-controller’ crate. It will contain the software (GUI and CLI to interact with the car). A video found on Reddit by my friend show a car being controlled by an X-Box controller. I actually have one, great idea that is now mine. 😉 (GilRS library)
 
 Found a great guy on the internet that has many of the modules I have, and A BLUE PILL (From now on I love this person). He did some troubleshoot videos about the Bluetooth module, wiring the TX pin to the Rx one. If everything you send to the module comes back, the modules work fine.
+
+---
+
+Oh man, it's been a year.

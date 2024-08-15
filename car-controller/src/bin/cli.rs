@@ -7,7 +7,7 @@ use car_controller::{Bluetooth, Controller};
 const BLUETOOTH_MODULE_HC_06: &str = "RenaultClio";
 #[cfg(feature = "ble")]
 /// Bluetooth name of the HM-10 BLE module
-const BLUETOOTH_MODULE_HM_10: &str = "BT05";
+const BLUETOOTH_MODULE_HM_10: &str = "RenaultClioBLE";
 
 #[tokio::main]
 async fn main() -> color_eyre::Result<()> {

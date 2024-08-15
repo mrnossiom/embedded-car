@@ -1,7 +1,7 @@
 //! Manages a new L298N a Dual H-Bridge Motor Controller module
 //!
 //! You may need the `L298` and `L298N` datasheet to understand this module.
-//! Both are available in the [`hardware-specs`](https://github.com/MrNossiom/embedded-car/tree/main/hardware-specs) folder in the repository.
+//! Both are available in the [`hardware-specs`](https://github.com/mrnossiom/embedded-car/tree/main/hardware-specs) folder in the repository.
 
 use embassy_stm32::{
 	gpio::{Level, Output, OutputType, Pin, Speed},

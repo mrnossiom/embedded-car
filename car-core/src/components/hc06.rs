@@ -1,6 +1,7 @@
 //! `HC-06` or `HM-10` bluetooth module driver (don't know yet)
 
 use car_transport::{Answer, Message, Transport};
+use defmt::{assert_eq, unwrap};
 use embassy_stm32::{
 	interrupt::typelevel::Binding,
 	usart::{self, BasicInstance, Config, InterruptHandler, Uart},
@@ -72,6 +73,21 @@ where
 		defmt::debug!("Received {:?}", &message);
 
 		Ok(message == Message::Ping)
+	}
+
+	pub async fn ping_text(&mut self) -> Result<bool, Error> {
+		self.uart.write(b"PING").await?;
+
+		defmt::debug!("Sent Pong");
+
+		let mut buffer = [0_u8; 7];
+		self.uart.read(&mut buffer).await?;
+		defmt::debug!("Received {}", &buffer);
+
+		// let message = Message::deserialize(&buffer).map_err(|_| Error::UnableToDeserialize)?;
+		// defmt::debug!("Received {:?}", &message);
+
+		Ok(&buffer == b"PONGFDP")
 	}
 }
 
