@@ -1,29 +1,20 @@
 //! `HC-06` or `HM-10` bluetooth module driver (don't know yet)
 
 use car_transport::{Answer, Message, Transport};
-use defmt::{assert_eq, unwrap};
 use embassy_stm32::{
+	Peri,
 	interrupt::typelevel::Binding,
-	usart::{self, BasicInstance, Config, InterruptHandler, Uart},
-	Peripheral,
+	mode,
+	usart::{self, Config, InterruptHandler, Uart},
 };
 
 /// Represents a `HC-06` bluetooth module.
-pub struct Hc06<'a, UartInstance, TxDma, RxDma>
-where
-	UartInstance: BasicInstance,
-{
+pub struct Hc06<'a> {
 	/// The underlying UART instance.
-	uart: Uart<'a, UartInstance, TxDma, RxDma>,
+	uart: Uart<'a, mode::Async>,
 }
 
-impl<'a, UartInstance, TxDma, RxDma> Hc06<'a, UartInstance, TxDma, RxDma>
-where
-	UartInstance: BasicInstance,
-
-	TxDma: usart::TxDma<UartInstance>,
-	RxDma: usart::RxDma<UartInstance>,
-{
+impl<'a> Hc06<'a> {
 	/// Creates a new `HC-06` handle from the `UART` peripheral and `rx`, `tx` pins.
 	/// You can also provide `DMA`s peripherals to enable `Direct Memory Access` transfers.
 	///
@@ -34,25 +25,18 @@ where
 	/// let bluetooth_irq = interrupt::take!(USART1);
 	/// let hc06 = Hc06::from_pins(p.USART1, p.PD9, p.PD8, bluetooth_irq, NoDma, NoDma);
 	/// ```
-	pub fn from_pins<
-		UartPeripheral: Peripheral<P = UartInstance> + 'a,
-		TxPin: usart::TxPin<UartInstance>,
-		RxPin: usart::RxPin<UartInstance>,
-		Irq: Binding<UartInstance::Interrupt, InterruptHandler<UartInstance>> + 'a,
-		TxDmaPeripheral: Peripheral<P = TxDma> + 'a,
-		RxDmaPeripheral: Peripheral<P = RxDma> + 'a,
-	>(
-		peripheral: UartPeripheral,
-		tx: TxPin,
-		rx: RxPin,
-		irq: Irq,
-		tx_dma: TxDmaPeripheral,
-		rx_dma: RxDmaPeripheral,
-	) -> Hc06<'a, UartInstance, TxDma, RxDma> {
+	pub fn from_pins<T: usart::Instance>(
+		peri: Peri<'a, T>,
+		rx: Peri<'a, impl usart::RxPin<T>>,
+		tx: Peri<'a, impl usart::TxPin<T>>,
+		irq: impl Binding<T::Interrupt, InterruptHandler<T>> + 'a,
+		tx_dma: Peri<'a, impl usart::TxDma<T>>,
+		rx_dma: Peri<'a, impl usart::RxDma<T>>,
+	) -> Hc06<'a> {
 		let mut config = Config::default();
 		config.baudrate = 9600;
 
-		let uart = Uart::new(peripheral, rx, tx, irq, tx_dma, rx_dma, config).unwrap();
+		let uart = Uart::new(peri, rx, tx, irq, tx_dma, rx_dma, config).unwrap();
 
 		Self { uart }
 	}

@@ -1,9 +1,9 @@
 //! `HC-SR04` ultrasonic sensor driver
 
 use embassy_stm32::{
+	Peri,
 	exti::ExtiInput,
 	gpio::{Level, Output, Pin, Pull, Speed},
-	Peripheral,
 };
 use embassy_time::{Duration, Instant, Timer};
 
@@ -22,9 +22,9 @@ pub struct HcSr04<'a> {
 impl<'a> HcSr04<'a> {
 	/// Creates a `HC-SCR04` sensor handle from the trigger and echo pins.
 	pub fn from_pins<EchoPin: Pin>(
-		trigger: impl Peripheral<P = impl Pin> + 'a,
-		echo: impl Peripheral<P = EchoPin> + 'a,
-		channel: impl Peripheral<P = EchoPin::ExtiChannel> + 'a,
+		trigger: Peri<'a, impl Pin>,
+		echo: Peri<'a, EchoPin>,
+		channel: Peri<'a, EchoPin::ExtiChannel>,
 	) -> HcSr04<'a> {
 		let trigger = Output::new(trigger, Level::Low, Speed::Low);
 		let echo = ExtiInput::new(echo, channel, Pull::None);

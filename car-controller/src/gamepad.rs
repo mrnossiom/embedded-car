@@ -1,9 +1,9 @@
 //! The implementation of a controller abstraction to control the car
 
-use color_eyre::eyre::{eyre, Context};
+use color_eyre::eyre::{Context, eyre};
 use gilrs::{
-	ff::{self, BaseEffect, BaseEffectType, Effect, EffectBuilder, Ticks},
 	Axis, Gamepad, GamepadId, Gilrs,
+	ff::{self, BaseEffect, BaseEffectType, Effect, EffectBuilder, Ticks},
 };
 
 /// The current state that the car should follow
@@ -34,6 +34,7 @@ impl Controller {
 			gilrs::Error::InvalidAxisToBtn => eyre!("Invalid axis to button"),
 			gilrs::Error::NotImplemented(_) => eyre!("Not implemented for the current platform"),
 			gilrs::Error::Other(error) => eyre!("Other error: {}", error),
+			_ => eyre!("Other error"),
 		})?;
 
 		let gamepad_id = manager

@@ -1,15 +1,16 @@
 //! `SG-90` servo motor driver
 
 use core::ops::{Add, Div, Mul, Sub};
+
 use embassy_stm32::{
+	Peri,
 	gpio::OutputType,
 	time::hz,
 	timer::{
+		Channel1Pin, GeneralInstance4Channel,
 		low_level::CountingMode,
 		simple_pwm::{PwmPin, SimplePwm},
-		Channel, Channel1Pin, Channel2Pin, GeneralInstance4Channel,
 	},
-	Peripheral,
 };
 
 /// Represents a small `SG-90` servo motor.
@@ -20,12 +21,9 @@ pub struct Sg90<'a, TimerPeripheral: GeneralInstance4Channel> {
 
 impl<'a, TimerPeripheral: GeneralInstance4Channel> Sg90<'a, TimerPeripheral> {
 	/// Creates a `SG90` servo handle from the pwn pin.
-	pub fn from_pin<
-		Timer: Peripheral<P = TimerPeripheral> + 'a,
-		PwmA: Channel1Pin<TimerPeripheral>,
-	>(
-		pwm_pin: PwmA,
-		timer: Timer,
+	pub fn from_pin(
+		pwm_pin: Peri<'a, impl Channel1Pin<TimerPeripheral>>,
+		timer: Peri<'a, TimerPeripheral>,
 	) -> Sg90<'a, TimerPeripheral> {
 		let pwm_pin = PwmPin::new_ch1(pwm_pin, OutputType::PushPull);
 
@@ -39,8 +37,8 @@ impl<'a, TimerPeripheral: GeneralInstance4Channel> Sg90<'a, TimerPeripheral> {
 			CountingMode::default(),
 		);
 
-		pwm.enable(Channel::Ch1);
-		pwm.enable(Channel::Ch2);
+		pwm.ch1().enable();
+		pwm.ch2().enable();
 
 		Self { pwm }
 	}
@@ -58,8 +56,8 @@ impl<'a, TimerPeripheral: GeneralInstance4Channel> Sg90<'a, TimerPeripheral> {
 	}
 
 	/// Changes the motor speed by a percentage
-	fn set_duty(&mut self, duty: u32) -> &mut Self {
-		self.pwm.set_duty(Channel::Ch1, duty);
+	fn set_duty(&mut self, duty: u16) -> &mut Self {
+		self.pwm.ch1().set_duty_cycle(duty);
 
 		self
 	}
@@ -69,14 +67,14 @@ impl<'a, TimerPeripheral: GeneralInstance4Channel> Sg90<'a, TimerPeripheral> {
 		// Asserts the number is between 1 and 100
 		assert!(angle <= 180);
 
-		let max_duty = self.pwm.get_max_duty();
+		let max_duty = self.pwm.max_duty_cycle();
 		// for 0.5-2.5ms duty range
 		// let duty_range = (max_duty * 25 / 1000, max_duty * 125 / 1000);
 
 		// for 1-2ms duty range
 		let duty_range = (max_duty * 25 / 1000, max_duty * 125 / 1000);
 
-		let duty = map_range((0, 180), duty_range, angle as u32);
+		let duty = map_range((0, 180), duty_range, angle.into());
 
 		self.set_duty(duty);
 

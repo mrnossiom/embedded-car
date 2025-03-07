@@ -1,5 +1,7 @@
 //! Contains `Bluetooth` communication logic with the `HC-06` module
 
+use std::{fmt, io, pin::Pin};
+
 use btleplug::{
 	api::{
 		Central, CentralEvent, CharPropFlags, Characteristic, Manager as _, Peripheral as _,
@@ -8,8 +10,7 @@ use btleplug::{
 	platform::{Manager, Peripheral},
 };
 use futures::{Stream, StreamExt};
-use std::{fmt, io, pin::Pin};
-use tokio::time::{sleep, Duration};
+use tokio::time::{Duration, sleep};
 
 /// Implements the `Bluetooth` communication logic
 pub struct Bluetooth {

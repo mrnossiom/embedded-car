@@ -10,11 +10,11 @@ keywords = ["bluetooth", "protocol"]
 categories = ["embedded"]
 readme = "../README.md"
 license = "MIT"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
-defmt = { version = "0.3", optional = true }
-defmt-macros = { version = "0.3", optional = true }
+defmt = { version = "1", optional = true }
+defmt-macros = { version = "1", optional = true }
 
 [features]
 defmt = ["dep:defmt", "dep:defmt-macros"]

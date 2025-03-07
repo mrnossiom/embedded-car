@@ -242,7 +242,6 @@ impl Transport for Answer {
 
 #[cfg(test)]
 mod tests {
-
 	use super::*;
 
 	#[test]

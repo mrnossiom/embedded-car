@@ -5,21 +5,21 @@
 // The executor is single threaded
 #![allow(clippy::future_not_send)]
 
-use {defmt_rtt as _, panic_probe as _};
-
 use core::sync::atomic::{AtomicBool, Ordering};
+
 use defmt::unwrap;
 use embassy_executor::Spawner;
 use embassy_stm32::{
-	bind_interrupts,
+	Config, bind_interrupts,
 	gpio::{Level, Output, Speed},
-	peripherals, usart, Config,
+	peripherals, usart,
 };
 use embassy_time::{Duration, Timer};
+use {defmt_rtt as _, panic_probe as _};
 
 mod components;
 
-use components::{Hc06, HcSr04, Sg90, L298N};
+use components::{Hc06, HcSr04, L298N, Sg90};
 
 /// Indicate if the program is connected to a computer.
 pub static IS_CONNECTED_TO_CONTROLLER: AtomicBool = AtomicBool::new(false);
@@ -50,7 +50,7 @@ async fn main(spawner: Spawner) {
 	unwrap!(spawner.spawn(alive_blinker(board_led)));
 
 	let mut _bluetooth =
-		Hc06::from_pins(p.USART3, p.PB10, p.PB11, Interrupts, p.DMA1_CH2, p.DMA1_CH3);
+		Hc06::from_pins(p.USART3, p.PB11, p.PB10, Interrupts, p.DMA1_CH2, p.DMA1_CH3);
 
 	let _ultrasonic = HcSr04::from_pins(p.PB4, p.PB5, p.EXTI5);
 	// TODO: pins already in use
