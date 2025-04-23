@@ -123,10 +123,11 @@ impl Transport for Message {
 
 	fn deserialize(buffer: &[u8]) -> Result<Self, TransportError> {
 		let message = match buffer[0] {
-			0 => Self::GetSpeed,
-			1 => Self::GetDirection,
-			2 => Self::GetBatteryLevel,
-			3 => Self::GetUltrasonicDistance,
+			0 => Self::Ping,
+			1 => Self::GetSpeed,
+			2 => Self::GetDirection,
+			3 => Self::GetBatteryLevel,
+			4 => Self::GetUltrasonicDistance,
 
 			100 => Self::SetSpeed(i8::from_be_bytes([buffer[1]])),
 			101 => Self::SetDirection(i8::from_be_bytes([buffer[1]])),
@@ -221,10 +222,11 @@ impl Transport for Answer {
 
 	fn deserialize(buffer: &[u8]) -> Result<Self, TransportError> {
 		let answer = match buffer[0] {
-			0 => Self::Speed(i8::from_be_bytes([buffer[1]])),
-			1 => Self::Direction(i8::from_be_bytes([buffer[1]])),
-			2 => Self::BatteryLevel(buffer[1]),
-			3 => Self::UltrasonicDistance(match buffer[1] {
+			0 => Self::Pong,
+			1 => Self::Speed(i8::from_be_bytes([buffer[1]])),
+			2 => Self::Direction(i8::from_be_bytes([buffer[1]])),
+			3 => Self::BatteryLevel(buffer[1]),
+			4 => Self::UltrasonicDistance(match buffer[1] {
 				0 => None,
 				1 => Some(buffer[2]),
 				_ => return Err(TransportError::InvalidPayload),
@@ -289,10 +291,10 @@ mod tests {
 
 		let length = message.serialize(&mut buffer);
 		assert_eq!(length, 1);
-		assert_eq!(&buffer[..length], &[0u8]);
+		assert_eq!(&buffer[..length], &[message.id()]);
 
-		let message = Message::deserialize(&buffer[..length])?;
-		assert_eq!(message, Message::GetSpeed);
+		let deserialized = Message::deserialize(&buffer[..length])?;
+		assert_eq!(deserialized, message);
 
 		Ok(())
 	}
@@ -330,14 +332,14 @@ mod tests {
 	#[test]
 	fn can_serialize_answer_with_data() -> Result<(), TransportError> {
 		let answer = Answer::Direction(100);
-		let mut buffer = [0u8; Message::MAX_PAYLOAD_SIZE + 1];
+		let mut buffer = [0u8; Answer::MAX_PAYLOAD_SIZE + 1];
 
 		let length = answer.serialize(&mut buffer);
 		assert_eq!(length, 2);
-		assert_eq!(&buffer[..length], &[1u8, 100i8.to_be_bytes()[0]]);
+		assert_eq!(&buffer[..length], &[answer.id(), 100i8.to_be_bytes()[0]]);
 
-		let answer = Answer::deserialize(&buffer[..length])?;
-		assert_eq!(answer, Answer::Direction(100));
+		let deserialized = Answer::deserialize(&buffer[..length])?;
+		assert_eq!(deserialized, answer);
 
 		Ok(())
 	}
@@ -345,14 +347,14 @@ mod tests {
 	#[test]
 	fn can_serialize_message_with_signed_integer() -> Result<(), TransportError> {
 		let answer = Answer::Direction(-100);
-		let mut buffer = [0u8; Message::MAX_PAYLOAD_SIZE + 1];
+		let mut buffer = [0u8; Answer::MAX_PAYLOAD_SIZE + 1];
 
 		let length = answer.serialize(&mut buffer);
 		assert_eq!(length, 2);
-		assert_eq!(&buffer[..length], &[1u8, (-100i8).to_be_bytes()[0]]);
+		assert_eq!(&buffer[..length], &[answer.id(), (-100i8).to_be_bytes()[0]]);
 
-		let answer = Answer::deserialize(&buffer[..length])?;
-		assert_eq!(answer, Answer::Direction(-100));
+		let deserialized = Answer::deserialize(&buffer[..length])?;
+		assert_eq!(deserialized, answer);
 
 		Ok(())
 	}

@@ -7,7 +7,7 @@ use embassy_stm32::{
 	gpio::OutputType,
 	time::hz,
 	timer::{
-		Channel1Pin, GeneralInstance4Channel,
+		Channel1Pin, Channel2Pin, GeneralInstance4Channel,
 		low_level::CountingMode,
 		simple_pwm::{PwmPin, SimplePwm},
 	},
@@ -22,49 +22,35 @@ pub struct Sg90<'a, TimerPeripheral: GeneralInstance4Channel> {
 impl<'a, TimerPeripheral: GeneralInstance4Channel> Sg90<'a, TimerPeripheral> {
 	/// Creates a `SG90` servo handle from the pwn pin.
 	pub fn from_pin(
-		pwm_pin: Peri<'a, impl Channel1Pin<TimerPeripheral>>,
+		pwm_pin: Peri<'a, impl Channel2Pin<TimerPeripheral>>,
 		timer: Peri<'a, TimerPeripheral>,
 	) -> Sg90<'a, TimerPeripheral> {
-		let pwm_pin = PwmPin::new_ch1(pwm_pin, OutputType::PushPull);
+		let pwm_pin = PwmPin::new_ch2(pwm_pin, OutputType::PushPull);
 
 		let mut pwm = SimplePwm::new(
 			timer,
-			Some(pwm_pin),
 			None,
+			Some(pwm_pin),
 			None,
 			None,
 			hz(50),
 			CountingMode::default(),
 		);
 
-		pwm.ch1().enable();
 		pwm.ch2().enable();
 
 		Self { pwm }
 	}
 
-	/// Returns the actual maximum duty
-	pub fn get_max_duty(&self) -> u32 {
-		// self.pwm.get_max_duty()
-		53320
-	}
-
-	/// Returns the actual maximum duty
-	pub fn get_duty_unit(&self) -> u32 {
-		// self.pwm.get_max_duty()
-		53320 / 20
-	}
-
 	/// Changes the motor speed by a percentage
 	fn set_duty(&mut self, duty: u16) -> &mut Self {
-		self.pwm.ch1().set_duty_cycle(duty);
-
+		self.pwm.ch2().set_duty_cycle(duty);
 		self
 	}
 
 	/// Changes the motor speed by a percentage
 	pub fn set_angle(&mut self, angle: u8) -> &mut Self {
-		// Asserts the number is between 1 and 100
+		// Asserts the number is between 1 and 180
 		assert!(angle <= 180);
 
 		let max_duty = self.pwm.max_duty_cycle();
@@ -77,7 +63,6 @@ impl<'a, TimerPeripheral: GeneralInstance4Channel> Sg90<'a, TimerPeripheral> {
 		let duty = map_range((0, 180), duty_range, angle.into());
 
 		self.set_duty(duty);
-
 		self
 	}
 

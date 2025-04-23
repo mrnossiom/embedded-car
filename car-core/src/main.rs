@@ -39,7 +39,7 @@ async fn alive_blinker(mut led: Output<'static>) {
 }
 
 bind_interrupts!(struct Interrupts {
-	USART3 => usart::InterruptHandler<peripherals::USART3>;
+	USART2 => usart::InterruptHandler<peripherals::USART2>;
 });
 
 #[embassy_executor::main]
@@ -49,12 +49,13 @@ async fn main(spawner: Spawner) {
 	let board_led = Output::new(p.PC13, Level::Low, Speed::Low);
 	unwrap!(spawner.spawn(alive_blinker(board_led)));
 
+	// TODO: check connections for PA3 et PA2
 	let mut _bluetooth =
-		Hc06::from_pins(p.USART3, p.PB11, p.PB10, Interrupts, p.DMA1_CH2, p.DMA1_CH3);
+		Hc06::from_pins(p.USART2, p.PA3, p.PA2, Interrupts, p.DMA1_CH7, p.DMA1_CH6);
 
 	let _ultrasonic = HcSr04::from_pins(p.PB4, p.PB5, p.EXTI5);
 	// TODO: pins already in use
-	let mut servo = Sg90::from_pin(p.PA6, p.TIM3);
+	let mut servo = Sg90::from_pin(p.PB3, p.TIM2);
 
 	// let _motor_driver = L298N::from_pins(p.PA7, p.PA6, p.PA8, p.PA5, p.PA4, p.PA9, p.TIM1);
 
