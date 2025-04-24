@@ -1,2 +1,2 @@
 [language-server.rust-analyzer.config]
-linkedProjects = ["car-core/Cargo.toml"]
+linkedProjects = ["Cargo.toml", "car-core/Cargo.toml"]

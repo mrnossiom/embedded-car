@@ -28,13 +28,20 @@ pub static IS_CONNECTED_TO_CONTROLLER: AtomicBool = AtomicBool::new(false);
 /// Tells if the program is running on the microcontroller.
 async fn alive_blinker(mut led: Output<'static>) {
 	loop {
-		led.toggle();
-		Timer::after(if IS_CONNECTED_TO_CONTROLLER.load(Ordering::Relaxed) {
-			Duration::from_millis(1000)
+		let nb_of_blinks = if IS_CONNECTED_TO_CONTROLLER.load(Ordering::Relaxed) {
+			5
 		} else {
-			Duration::from_millis(125)
-		})
-		.await;
+			3
+		};
+
+		for _ in 0..nb_of_blinks {
+			led.set_low();
+			Timer::after(Duration::from_millis(150)).await;
+			led.set_high();
+			Timer::after(Duration::from_millis(100)).await;
+		}
+
+		Timer::after(Duration::from_millis(1000)).await;
 	}
 }
 
@@ -50,23 +57,26 @@ async fn main(spawner: Spawner) {
 	unwrap!(spawner.spawn(alive_blinker(board_led)));
 
 	// TODO: check connections for PA3 et PA2
-	let mut _bluetooth =
-		Hc06::from_pins(p.USART2, p.PA3, p.PA2, Interrupts, p.DMA1_CH7, p.DMA1_CH6);
+	let mut bluetooth = Hc06::from_pins(p.USART2, p.PA3, p.PA2, Interrupts, p.DMA1_CH7, p.DMA1_CH6);
 
-	let _ultrasonic = HcSr04::from_pins(p.PB4, p.PB5, p.EXTI5);
+	loop {
+		unwrap!(bluetooth.ping().await);
+	}
+
+	// let _ultrasonic = HcSr04::from_pins(p.PB4, p.PB5, p.EXTI5);
 	// TODO: pins already in use
-	let mut servo = Sg90::from_pin(p.PB3, p.TIM2);
+	// let mut servo = Sg90::from_pin(p.PB3, p.TIM2);
 
 	// let _motor_driver = L298N::from_pins(p.PA7, p.PA6, p.PA8, p.PA5, p.PA4, p.PA9, p.TIM1);
 
 	// unwrap!(bluetooth.ping_text().await);
 
-	loop {
-		servo.set_angle(0);
-		Timer::after(Duration::from_secs(1)).await;
-		servo.set_angle(90);
-		Timer::after(Duration::from_secs(1)).await;
-		servo.set_angle(180);
-		Timer::after(Duration::from_secs(1)).await;
-	}
+	// loop {
+	// 	servo.set_angle(0);
+	// 	Timer::after(Duration::from_secs(1)).await;
+	// 	servo.set_angle(90);
+	// 	Timer::after(Duration::from_secs(1)).await;
+	// 	servo.set_angle(180);
+	// 	Timer::after(Duration::from_secs(1)).await;
+	// }
 }

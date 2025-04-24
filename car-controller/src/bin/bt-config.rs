@@ -1,43 +1,105 @@
 //! Used to configure the bluetooth module
 
 use std::{
-	io::{self, Read, Write},
+	io::{self, ErrorKind, Read, Write, stdin, stdout},
+	str,
 	time::Duration,
 };
 
+use clap::{Parser, ValueEnum};
 use serialport::SerialPort;
 
 // setfacl --modify u:(whoami):rw /dev/ttyUSB0
 
-/// Path to the USB tty
-const BT_TTY_PATH: &str = "/dev/ttyUSB0";
+#[derive(Parser)]
+struct Args {
+	#[clap(long, default_value_t = String::from("/dev/ttyUSB0"))]
+	module_tty_path: String,
+
+	#[clap(long)]
+	module_kind: ModuleKind,
+
+	#[clap(long, default_value_t = 250)]
+	timeout_ms: u64,
+}
+
+#[derive(Debug, Clone, ValueEnum)]
+enum ModuleKind {
+	Hc06,
+	Hm10,
+}
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-	let module = Hc06::new(BT_TTY_PATH).unwrap();
+	let args = Args::parse();
+
+	let mut module = BluetoothModule::new_serial(
+		&args.module_kind,
+		&args.module_tty_path,
+		Duration::from_millis(args.timeout_ms),
+	)
+	.unwrap();
+
+	loop {
+		print!("{:?}> ", &args.module_kind);
+		stdout().flush()?;
+
+		let mut input = String::new();
+		stdin().read_line(&mut input)?;
+
+		if input.is_empty() {
+			break;
+		}
+
+		let module_response = module.send_and_read_response(input.trim())?;
+		println!("{module_response}");
+	}
 
 	Ok(())
 }
 
 /// Abstract interaction with bt module
-struct Hc06 {
+struct BluetoothModule {
+	kind: ModuleKind,
 	port: Box<dyn SerialPort>,
 }
 
-impl Hc06 {
-	/// Init
-	fn new(path: &str) -> io::Result<Self> {
-		let mut port = serialport::new(path, 9600)
-			.timeout(Duration::from_millis(1500))
-			.baud_rate(9600)
-			.open()
-			.unwrap();
+impl BluetoothModule {
+	fn new_serial(kind: &ModuleKind, path: &str, timeout: Duration) -> io::Result<Self> {
+		let port = serialport::new(path, 9600).timeout(timeout).open().unwrap();
+		Ok(Self {
+			kind: kind.clone(),
+			port,
+		})
+	}
 
-		write!(port, "AT")?;
-		let mut serial_buf: [u8; 2] = [0; 2];
-		port.read_exact(&mut serial_buf).unwrap();
-		assert_eq!(&serial_buf, b"OK");
+	fn send_and_read_response(&mut self, msg: &str) -> io::Result<String> {
+		let end = match self.kind {
+			ModuleKind::Hc06 => "\r\n",
+			ModuleKind::Hm10 => "",
+		};
 
-		Ok(Self { port })
+		write!(self.port, "{}{}", msg, end)?;
+		self.port.flush()?;
+
+		let mut buffer = [0; 20];
+		let mut index = 0usize;
+
+		loop {
+			match buffer.get(index.saturating_sub(2)..index) {
+				// HC06 end-of-transmission?
+				Some(b"\r\n") => break,
+				_ => match self.port.read(&mut buffer[index..]) {
+					Ok(num) => index += num,
+					// HM10 has no end marker
+					Err(err) if err.kind() == ErrorKind::TimedOut => break,
+					Err(err) => return Err(err),
+				},
+			}
+		}
+
+		let response = str::from_utf8(&buffer[..index]).unwrap();
+
+		Ok(response.to_string())
 	}
 
 	fn send_command(cmd: AtCommand) {}

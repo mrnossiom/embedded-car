@@ -40,6 +40,7 @@
               probe-rs
               fritzing
               usbutils
+              minicom
             ];
             buildInputs = with pkgs; [ dbus systemd ];
 
