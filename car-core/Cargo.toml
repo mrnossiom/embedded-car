@@ -3,7 +3,6 @@ name = "car-core"
 version = "0.1.0"
 description = "Implementation of the car logic and communication protocol"
 repository = "https://github.com/MrNossion/embedded-car"
-authors = ["Milo Moisson"]
 keywords = ["embedded", "car", "stm32f103c8", "bluetooth", "blue-pill"]
 categories = ["embedded"]
 readme = "../README.md"
